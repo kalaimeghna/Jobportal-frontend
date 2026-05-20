@@ -4,7 +4,7 @@ const API =
   axios.create({
 
     baseURL:
-      "http://localhost:5000/api",
+      "https://jobport-backend-eyz6.onrender.com",
   });
 
 export default API;
