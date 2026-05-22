@@ -45,7 +45,7 @@ export default function Register() {
 
         const { data } =
           await API.post(
-            "/auth/register",
+            "/api/auth/register",
             {
               name,
               email,
