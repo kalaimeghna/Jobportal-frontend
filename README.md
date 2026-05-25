@@ -21,9 +21,14 @@ npm install
 npm run dev
 
 #demo credentials
+
 jobseeker 
-login:vino@gmail.com
+1.login:vino@gmail.com
+password:123456,
+2.login:guru@gmail.com
 password:123456
+
+
 employer
 login:kani@gmail.com
 password:123456
