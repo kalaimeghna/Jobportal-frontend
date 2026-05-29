@@ -1,263 +1,141 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+
+// ================= USER TYPE =================
+type User = {
+  _id: string;
+  name: string;
+  email: string;
+  role: "employer" | "jobseeker";
+};
+
+// ================= GET USER =================
+const getUser = (): User | null => {
+  try {
+    const data = localStorage.getItem("user");
+    return data ? JSON.parse(data) : null;
+  } catch {
+    return null;
+  }
+};
 
 export default function Navbar() {
+  const [user, setUser] = useState<User | null>(getUser());
+  const location = useLocation();
 
-  // ================= GET USER =================
+  // ================= SYNC USER =================
+  useEffect(() => {
+    const syncUser = () => setUser(getUser());
 
-  const user =
-    localStorage.getItem("user")
+    window.addEventListener("storage", syncUser);
+    syncUser();
 
-      ? JSON.parse(
-          localStorage.getItem("user")!
-        )
-
-      : null;
-
+    return () => window.removeEventListener("storage", syncUser);
+  }, []);
 
   // ================= LOGOUT =================
-
   const logoutHandler = () => {
-
-    localStorage.removeItem(
-      "token"
-    );
-
-    localStorage.removeItem(
-      "user"
-    );
-
-    window.location.href =
-      "/login";
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    window.location.href = "/login";
   };
 
+  // ================= ACTIVE LINK =================
+  const isActive = (path: string) =>
+    location.pathname === path ? "text-yellow-300 font-bold" : "";
 
   return (
-
     <nav className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center flex-wrap gap-4">
 
       {/* LOGO */}
-
-      <Link
-        to="/"
-        className="text-2xl font-bold"
-      >
-
+      <Link to="/" className="text-2xl font-bold">
         Job Portal
-
       </Link>
 
-
-      {/* NAV LINKS */}
-
+      {/* LINKS */}
       <div className="flex items-center gap-4 flex-wrap">
 
-        {/* HOME */}
-
-        <Link
-          to="/"
-          className="hover:text-gray-200 transition"
-        >
-
+        <Link to="/" className={isActive("/")}>
           Home
-
         </Link>
 
-
-        {/* JOBS */}
-
-        <Link
-          to="/jobs"
-          className="hover:text-gray-200 transition"
-        >
-
+        <Link to="/jobs" className={isActive("/jobs")}>
           Jobs
-
         </Link>
 
-
-        {/* COMPANIES */}
-
-        <Link
-          to="/companies"
-          className="hover:text-gray-200 transition"
-        >
-
+        <Link to="/companies" className={isActive("/companies")}>
           Companies
-
         </Link>
 
-
-        {/* RECOMMENDED JOBS */}
-
-        {
-          user?.role === "jobseeker" && (
-
-            <Link
-              to="/recommended-jobs"
-              className="hover:text-gray-200 transition"
-            >
-
+        {/* JOBSEEKER */}
+        {user?.role === "jobseeker" && (
+          <>
+            <Link to="/recommended-jobs">
               Recommended Jobs
-
             </Link>
-          )
-        }
 
+            <Link to="/applications">
+              My Applications
+            </Link>
 
-        {/* EMPLOYER LINKS */}
+            <Link to="/resume-upload">
+              Resume
+            </Link>
+          </>
+        )}
 
-        {
-          user?.role === "employer" && (
-            <>
+        {/* EMPLOYER */}
+        {user?.role === "employer" && (
+          <>
+            {/* FIXED ROUTES (EXIST IN YOUR ROUTER) */}
+            <Link to="/dashboard" className={isActive("/dashboard")}>
+              Dashboard
+            </Link>
 
-              <Link
-                to="/create-company"
-                className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition"
-              >
+            <Link to="/create-company" className={isActive("/create-company")}>
+              Create Company
+            </Link>
 
-                Create Company
-
-              </Link>
-
-
-              <Link
-                to="/create-job"
-                className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition"
-              >
-
-                Create Job
-
-              </Link>
-
-
-              <Link
-                to="/dashboard"
-                className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition"
-              >
-
-                Dashboard
-
-              </Link>
-
-            </>
-          )
-        }
-
-
-        {/* JOB SEEKER LINKS */}
-
-        {
-          user?.role === "jobseeker" && (
-            <>
-
-              <Link
-                to="/applications"
-                className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition"
-              >
-
-                My Applications
-
-              </Link>
-
-
-              <Link
-                to="/resume-upload"
-                className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition"
-              >
-
-                Resume
-
-              </Link>
-
-            </>
-          )
-        }
-
+            <Link to="/create-job" className={isActive("/create-job")}>
+              Create Job
+            </Link>
+          </>
+        )}
 
         {/* PROFILE */}
+        {user && (
+          <Link to="/profile" className={isActive("/profile")}>
+            Profile
+          </Link>
+        )}
 
-        {
-          user && (
+        {/* PASSWORD */}
+        {user && (
+          <Link to="/change-password">
+            Change Password
+          </Link>
+        )}
 
-            <Link
-              to="/profile"
-              className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition"
-            >
-
-              Profile
-
-            </Link>
-          )
-        }
-
-
-        {/* CHANGE PASSWORD */}
-
-        {
-          user && (
-
-            <Link
-              to="/change-password"
-              className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition"
-            >
-
-              Change Password
-
-            </Link>
-          )
-        }
-
-
-        {/* LOGIN / REGISTER */}
-
-        {
-          !user && (
-            <>
-
-              <Link
-                to="/login"
-                className="hover:text-gray-200 transition"
-              >
-
-                Login
-
-              </Link>
-
-
-              <Link
-                to="/register"
-                className="hover:text-gray-200 transition"
-              >
-
-                Register
-
-              </Link>
-
-            </>
-          )
-        }
-
+        {/* AUTH */}
+        {!user && (
+          <>
+            <Link to="/login">Login</Link>
+            <Link to="/register">Register</Link>
+          </>
+        )}
 
         {/* LOGOUT */}
-
-        {
-          user && (
-
-            <button
-              onClick={
-                logoutHandler
-              }
-              className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition"
-            >
-
-              Logout
-
-            </button>
-          )
-        }
+        {user && (
+          <button
+            onClick={logoutHandler}
+            className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600"
+          >
+            Logout
+          </button>
+        )}
 
       </div>
-
     </nav>
   );
 }

@@ -1,9 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 
+type Company = {
+  _id: string;
+  companyName: string;
+};
+
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
+
 export default function CreateJob() {
   const navigate = useNavigate();
+
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -13,28 +29,49 @@ export default function CreateJob() {
     company: "",
   });
 
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const { data } = await API.get("/companies");
+
+        const list = Array.isArray(data.companies)
+          ? data.companies
+          : [];
+
+        setCompanies(list);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchCompanies();
+  }, []);
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const { data } = await API.post("/jobs", form);
+      setLoading(true);
 
-      alert(data.message || "Job created");
+      const res = await API.post("/jobs", {
+        ...form,
+        salary: Number(form.salary),
+      });
 
+      alert(res.data.message || "Job created");
       navigate("/dashboard");
 
-    } catch (error) {
-      console.log("Job create error:", error);
-      alert("Failed to create job");
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      alert(err.response?.data?.message || "Failed to create job");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,59 +84,63 @@ export default function CreateJob() {
 
         <input
           name="title"
-          placeholder="Job Title"
           value={form.title}
           onChange={handleChange}
+          placeholder="Title"
           className="border p-2 w-full mb-3"
           required
         />
 
         <textarea
           name="description"
-          placeholder="Job Description"
           value={form.description}
           onChange={handleChange}
+          placeholder="Description"
           className="border p-2 w-full mb-3"
           required
         />
 
         <input
           name="location"
-          placeholder="Location"
           value={form.location}
           onChange={handleChange}
+          placeholder="Location"
           className="border p-2 w-full mb-3"
           required
         />
 
         <input
           name="salary"
-          placeholder="Salary"
           value={form.salary}
           onChange={handleChange}
+          placeholder="Salary"
           className="border p-2 w-full mb-3"
           required
         />
 
-        {/* IMPORTANT FIELD */}
-        <input
+        <select
           name="company"
-          placeholder="Company ID"
           value={form.company}
           onChange={handleChange}
           className="border p-2 w-full mb-4"
           required
-        />
+        >
+          <option value="">Select Company</option>
+          {companies.map((c) => (
+            <option key={c._id} value={c._id}>
+              {c.companyName}
+            </option>
+          ))}
+        </select>
 
         <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 w-full"
+          className="bg-blue-600 text-white w-full py-2"
+          disabled={loading}
         >
-          Create Job
+          {loading ? "Creating..." : "Create Job"}
         </button>
 
       </form>
-
     </div>
   );
 }

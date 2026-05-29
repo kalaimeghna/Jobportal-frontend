@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import API from "../services/api";
+import axios from "axios";
 
 // ================= TYPES =================
 type Job = {
@@ -8,18 +9,10 @@ type Job = {
   title: string;
   description: string;
   location: string;
-  salary: number;
-  createdBy?: {
+  salary: string;
+  company?: {
     _id: string;
-    name: string;
-  };
-};
-
-type ApiError = {
-  response?: {
-    data?: {
-      message?: string;
-    };
+    companyName: string;
   };
 };
 
@@ -34,9 +27,10 @@ export default function JobDetails() {
   useEffect(() => {
     const fetchJob = async () => {
       try {
-        const { data } = await API.get(`/jobs/${id}`);
-        setJob(data.job);
-      } catch (error: unknown) {
+        const res = await API.get(`/jobs/${id}`);
+
+        setJob(res.data.job || res.data.data || res.data);
+      } catch (error) {
         console.log("Fetch job error:", error);
       } finally {
         setLoading(false);
@@ -51,19 +45,23 @@ export default function JobDetails() {
     try {
       setApplying(true);
 
-      const res = await API.post(`/applications/${id}`);
+      const res = await API.post(
+        `/applications/apply/${id}`
+      );
 
       alert(res.data.message || "Applied successfully");
 
     } catch (error: unknown) {
       console.log("Apply error:", error);
 
-      const err = error as ApiError;
-
-      alert(
-        err.response?.data?.message ||
-          "Already applied or something went wrong"
-      );
+      if (axios.isAxiosError(error)) {
+        alert(
+          error.response?.data?.message ||
+            "Already applied or something went wrong"
+        );
+      } else {
+        alert("Something went wrong");
+      }
 
     } finally {
       setApplying(false);
@@ -90,7 +88,7 @@ export default function JobDetails() {
 
       {/* COMPANY */}
       <p className="text-gray-600 mb-2">
-        🏢 {job.createdBy?.name || "Unknown Company"}
+        🏢 {job.company?.companyName || "Unknown Company"}
       </p>
 
       {/* LOCATION */}
@@ -100,7 +98,7 @@ export default function JobDetails() {
 
       {/* SALARY */}
       <p className="text-green-600 mb-4">
-        💰 ₹{job.salary}
+        💰 {job.salary}
       </p>
 
       {/* DESCRIPTION */}

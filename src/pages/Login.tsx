@@ -1,9 +1,9 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 import API from "../services/api";
 
-export default function Login() {
+const Login = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -12,43 +12,60 @@ export default function Login() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // ================= HANDLE CHANGE =================
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  // ================= HANDLE SUBMIT =================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     try {
-      const { data } = await API.post("/auth/login", formData);
+      setLoading(true);
+      setError("");
 
-      // ================= SAVE AUTH =================
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      const res = await API.post("/auth/login", formData);
+
+      console.log("LOGIN RESPONSE:", res.data);
+
+      // ❌ VALIDATION FIX
+      if (!res.data?.token || !res.data?.user) {
+        setError("Invalid login response from server");
+        return;
+      }
+
+      // SAVE TOKEN
+      localStorage.setItem("token", res.data.token);
+
+      // SAVE USER
+      localStorage.setItem(
+        "user",
+        JSON.stringify(res.data.user)
+      );
 
       alert("Login Successful");
 
-      // ================= FIXED NAVIGATION (NO ERROR) =================
-      navigate(
-        data.user.role === "employer"
-          ? "/dashboard"
-          : "/jobs"
-      );
+      // OPTIONAL ROLE DEBUG
+      console.log("USER ROLE:", res.data.user.role);
 
-    } catch (error: unknown) {
-      console.log(error);
+      navigate("/");
 
-      if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.message || "Login Failed");
+    } catch (err: unknown) {
+      console.error(err);
+
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ||
+            "Login failed"
+        );
       } else {
-        alert("Something went wrong");
+        setError("Something went wrong");
       }
 
     } finally {
@@ -57,65 +74,77 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md"
-      >
+      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
 
-        <h1 className="text-4xl font-bold text-center mb-8">
+        <h2 className="text-3xl font-bold text-center mb-6">
           Login
-        </h1>
+        </h2>
 
-        {/* EMAIL */}
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter Email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full border p-3 rounded-lg mb-4"
-          required
-        />
+        {error && (
+          <div className="bg-red-100 text-red-600 p-3 rounded mb-4">
+            {error}
+          </div>
+        )}
 
-        {/* PASSWORD */}
-        <input
-          type="password"
-          name="password"
-          placeholder="Enter Password"
-          value={formData.password}
-          onChange={handleChange}
-          className="w-full border p-3 rounded-lg mb-6"
-          required
-        />
+        <form onSubmit={handleSubmit}>
 
-        {/* LOGIN BUTTON */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg"
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
+          <div className="mb-4">
 
-        {/* FORGOT PASSWORD */}
+            <label className="block mb-2 font-medium">
+              Email
+            </label>
+
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full border rounded px-4 py-2"
+            />
+
+          </div>
+
+          <div className="mb-6">
+
+            <label className="block mb-2 font-medium">
+              Password
+            </label>
+
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="w-full border rounded px-4 py-2"
+            />
+
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 rounded"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+
+        </form>
+
         <p className="text-center mt-4">
-          <Link to="/forgot-password" className="text-blue-600">
-            Forgot Password?
-          </Link>
-        </p>
-
-        {/* REGISTER */}
-        <p className="text-center mt-6">
-          Don't have an account?
-          <Link to="/register" className="text-blue-600 ml-2">
+          Don’t have an account?{" "}
+          <Link to="/register" className="text-blue-600">
             Register
           </Link>
         </p>
 
-      </form>
+      </div>
 
     </div>
   );
-}
+};
+
+export default Login;

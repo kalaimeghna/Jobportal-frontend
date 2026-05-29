@@ -3,9 +3,21 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import axios from "axios";
 
+// ================= USER TYPE CHECK =================
+const getUser = () => {
+  try {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  } catch {
+    return null;
+  }
+};
+
 export default function CreateCompany() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  const user = getUser();
 
   const [formData, setFormData] = useState({
     companyName: "",
@@ -32,24 +44,40 @@ export default function CreateCompany() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // ❌ ROLE CHECK FIX
+    if (user?.role !== "employer") {
+      alert("Only employers can create companies");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { data } = await API.post("/companies", formData);
+      const payload = {
+        ...formData,
+        foundedYear: formData.foundedYear
+          ? Number(formData.foundedYear)
+          : undefined,
+      };
 
-      alert(data.message || "Company created successfully");
+      const res = await API.post("/companies", payload);
+
+      alert(res.data.message || "Company created successfully");
 
       navigate("/companies");
+
     } catch (error: unknown) {
-      console.log(error);
+      console.log("Create company error:", error);
 
       if (axios.isAxiosError(error)) {
         alert(
-          error.response?.data?.message || "Failed to create company"
+          error.response?.data?.message ||
+            "Failed to create company"
         );
       } else {
         alert("Unexpected error occurred");
       }
+
     } finally {
       setLoading(false);
     }
@@ -57,10 +85,12 @@ export default function CreateCompany() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-xl"
       >
+
         <h1 className="text-3xl font-bold text-center mb-6">
           Create Company
         </h1>
@@ -148,7 +178,9 @@ export default function CreateCompany() {
         >
           {loading ? "Creating..." : "Create Company"}
         </button>
+
       </form>
+
     </div>
   );
 }
