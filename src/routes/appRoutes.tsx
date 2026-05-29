@@ -1,32 +1,32 @@
 import { Routes, Route } from "react-router-dom";
 
 // ================= PAGES =================
-import Home from "../pages/Home";
-import Login from "../pages/Login";
-import Register from "../pages/Register";
+import Home from "../pages/Home.tsx";
+import Login from "../pages/Login.tsx";
+import Register from "../pages/Register.tsx";
 
-import Jobs from "../pages/Jobs";
-import JobDetails from "../pages/JobDetails";
-import EditJob from "../pages/EditJob";
-import CreateJob from "../pages/CreateJob";
+import Jobs from "../pages/Jobs.tsx";
+import JobDetails from "../pages/JobDetails.tsx";
+import EditJob from "../pages/EditJob.tsx";
+import CreateJob from "../pages/CreateJob.tsx";
 
-import Dashboard from "../pages/Dashboard";
-import Profile from "../pages/Profile";
+import Dashboard from "../pages/Dashboard.tsx";
+import Profile from "../pages/Profile.tsx";
 
-import Applications from "../pages/Applications";
-import JobApplicants from "../pages/JobApplicants";
-import EmployerApplications from "../pages/EmployerApplications";
+import Applications from "../pages/Applications.tsx";
+import JobApplicants from "../pages/JobApplicants.tsx";
+import EmployerApplications from "../pages/EmployerApplications.tsx";
 
-import ForgotPassword from "../pages/ForgotPassword";
-import ResetPassword from "../pages/ResetPassword";
-import ChangePassword from "../pages/ChangePassword";
+import ForgotPassword from "../pages/ForgotPassword.tsx";
+import ResetPassword from "../pages/ResetPassword.tsx";
+import ChangePassword from "../pages/ChangePassword.tsx";
 
-import RecommendedJobs from "../pages/RecommendedJob";
-import ResumeUpload from "../pages/ResumeUpload";
+import RecommendedJobs from "../pages/RecommendedJob.tsx";
+import ResumeUpload from "../pages/resumeUpload.tsx";
 
-import CreateCompany from "../pages/CreateCompany";
-import Companies from "../pages/Companies";
-import CompanyDetails from "../pages/CompanyDetails";
+import CreateCompany from "../pages/CreateCompany.tsx";
+import Companies from "../pages/Companies.tsx";
+import CompanyDetails from "../pages/CompanyDetails.tsx";
 
 // ================= ROUTES =================
 export default function AppRoutes() {
