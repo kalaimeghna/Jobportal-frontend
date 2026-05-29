@@ -2,7 +2,10 @@ import { useState } from "react";
 
 import axios from "axios";
 
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+  Link,
+} from "react-router-dom";
 
 import API from "../services/api";
 
@@ -23,6 +26,18 @@ export default function Register() {
 
   const [role, setRole] =
     useState("jobseeker");
+
+  const [phone, setPhone] =
+    useState("");
+
+  const [skills, setSkills] =
+    useState("");
+
+  const [experience, setExperience] =
+    useState("");
+
+  const [education, setEducation] =
+    useState("");
 
   const [loading, setLoading] =
     useState(false);
@@ -51,8 +66,21 @@ export default function Register() {
               email,
               password,
               role,
+              phone,
+
+              skills:
+                skills
+                  .split(",")
+                  .map(
+                    (skill) =>
+                      skill.trim()
+                  ),
+
+              experience,
+              education,
             }
           );
+
 
         console.log(data);
 
@@ -72,22 +100,10 @@ export default function Register() {
 
           JSON.stringify({
 
-            _id:
-              data._id ||
-              data.user?._id,
+            ...data.user,
 
-            name:
-              data.name ||
-              data.user?.name,
-
-            email:
-              data.email ||
-              data.user?.email,
-
-            role:
-              data.role ||
-              data.user?.role,
-
+            token:
+              data.token,
           })
         );
 
@@ -102,6 +118,8 @@ export default function Register() {
         navigate("/login");
 
       } catch (error: unknown) {
+
+        console.log(error);
 
         if (
           axios.isAxiosError(error)
@@ -131,18 +149,18 @@ export default function Register() {
 
   return (
 
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
 
       <form
         onSubmit={handleRegister}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md space-y-4"
+        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg space-y-5"
       >
 
         {/* HEADING */}
 
         <h1 className="text-3xl font-bold text-center">
 
-          Register
+          Create Account
 
         </h1>
 
@@ -160,7 +178,7 @@ export default function Register() {
           <input
             type="text"
             placeholder="Enter Name"
-            className="w-full border p-3 rounded"
+            className="w-full border p-3 rounded-lg"
             value={name}
             onChange={(e) =>
               setName(
@@ -186,7 +204,7 @@ export default function Register() {
           <input
             type="email"
             placeholder="Enter Email"
-            className="w-full border p-3 rounded"
+            className="w-full border p-3 rounded-lg"
             value={email}
             onChange={(e) =>
               setEmail(
@@ -212,7 +230,7 @@ export default function Register() {
           <input
             type="password"
             placeholder="Enter Password"
-            className="w-full border p-3 rounded"
+            className="w-full border p-3 rounded-lg"
             value={password}
             onChange={(e) =>
               setPassword(
@@ -220,6 +238,106 @@ export default function Register() {
               )
             }
             required
+          />
+
+        </div>
+
+
+        {/* PHONE */}
+
+        <div>
+
+          <label className="block mb-1 font-medium">
+
+            Phone
+
+          </label>
+
+          <input
+            type="text"
+            placeholder="Enter Phone Number"
+            className="w-full border p-3 rounded-lg"
+            value={phone}
+            onChange={(e) =>
+              setPhone(
+                e.target.value
+              )
+            }
+          />
+
+        </div>
+
+
+        {/* SKILLS */}
+
+        <div>
+
+          <label className="block mb-1 font-medium">
+
+            Skills
+
+          </label>
+
+          <input
+            type="text"
+            placeholder="React, Node.js, MongoDB"
+            className="w-full border p-3 rounded-lg"
+            value={skills}
+            onChange={(e) =>
+              setSkills(
+                e.target.value
+              )
+            }
+          />
+
+        </div>
+
+
+        {/* EXPERIENCE */}
+
+        <div>
+
+          <label className="block mb-1 font-medium">
+
+            Experience
+
+          </label>
+
+          <input
+            type="text"
+            placeholder="2 Years"
+            className="w-full border p-3 rounded-lg"
+            value={experience}
+            onChange={(e) =>
+              setExperience(
+                e.target.value
+              )
+            }
+          />
+
+        </div>
+
+
+        {/* EDUCATION */}
+
+        <div>
+
+          <label className="block mb-1 font-medium">
+
+            Education
+
+          </label>
+
+          <input
+            type="text"
+            placeholder="B.Tech Computer Science"
+            className="w-full border p-3 rounded-lg"
+            value={education}
+            onChange={(e) =>
+              setEducation(
+                e.target.value
+              )
+            }
           />
 
         </div>
@@ -236,7 +354,7 @@ export default function Register() {
           </label>
 
           <select
-            className="w-full border p-3 rounded"
+            className="w-full border p-3 rounded-lg"
             value={role}
             onChange={(e) =>
               setRole(
@@ -267,7 +385,7 @@ export default function Register() {
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white w-full py-3 rounded"
+          className="bg-blue-600 hover:bg-blue-700 text-white w-full py-3 rounded-lg font-semibold transition"
         >
 
           {loading
@@ -275,6 +393,24 @@ export default function Register() {
             : "Register"}
 
         </button>
+
+
+        {/* LOGIN LINK */}
+
+        <p className="text-center text-gray-600">
+
+          Already have an account?
+
+          <Link
+            to="/login"
+            className="text-blue-600 ml-1 font-semibold"
+          >
+
+            Login
+
+          </Link>
+
+        </p>
 
       </form>
 

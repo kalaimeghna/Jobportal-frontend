@@ -1,333 +1,144 @@
-import {
-  useEffect,
-  useState,
-} from "react";
-
-import {
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-
+import { useEffect, useState } from "react";
 import API from "../services/api";
+import { Link } from "react-router-dom";
 
+// ================= TYPES =================
+type Job = {
+  _id: string;
+  title: string;
+  location: string;
+  salary: string;
+  createdBy?: {
+    _id: string;
+    name: string;
+  };
+};
 
-export default function EditJob() {
+export default function Jobs() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const { id } =
-    useParams();
+  // ================= SAFE USER PARSE =================
+  let user = null;
+  try {
+    const storedUser = localStorage.getItem("user");
+    user = storedUser ? JSON.parse(storedUser) : null;
+  } catch (error) {
+    console.log("User parse error:", error);
+    user = null;
+  }
 
-  const navigate =
-    useNavigate();
-
-
-  // ================= STATES =================
-
-  const [
-    title,
-    setTitle,
-  ] = useState("");
-
-  const [
-    description,
-    setDescription,
-  ] = useState("");
-
-  const [
-    requirements,
-    setRequirements,
-  ] = useState("");
-
-  const [
-    location,
-    setLocation,
-  ] = useState("");
-
-  const [
-    salary,
-    setSalary,
-  ] = useState("");
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
-
-
-  // ================= FETCH JOB =================
-
+  // ================= FETCH JOBS =================
   useEffect(() => {
-
-    const fetchJob =
-      async () => {
-
-        try {
-
-          const { data } =
-            await API.get(
-              `/jobs/${id}`
-            );
-
-          setTitle(
-            data.job.title
-          );
-
-          setDescription(
-            data.job.description
-          );
-
-          setRequirements(
-            data.job.requirements
-          );
-
-          setLocation(
-            data.job.location
-          );
-
-          setSalary(
-            data.job.salary
-              .toString()
-          );
-
-        } catch (error) {
-
-          console.log(error);
-
-          alert(
-            "Failed to load job"
-          );
-
-        }
-      };
-
-    fetchJob();
-
-  }, [id]);
-
-
-  // ================= UPDATE JOB =================
-
-  const submitHandler =
-    async (
-      e: React.FormEvent<HTMLFormElement>
-    ) => {
-
-      e.preventDefault();
-
+    const fetchJobs = async () => {
       try {
+        const { data } = await API.get("/jobs");
 
-        setLoading(true);
-
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
-        await API.put(
-
-          `/jobs/${id}`,
-
-          {
-            title,
-            description,
-            requirements,
-            location,
-            salary,
-          },
-
-          {
-            headers: {
-
-              Authorization:
-                `Bearer ${token}`,
-
-            },
-          }
-        );
-
-        alert(
-          "Job updated successfully"
-        );
-
-        navigate(
-          "/dashboard"
-        );
+        setJobs(Array.isArray(data.jobs) ? data.jobs : []);
 
       } catch (error) {
-
-        console.log(error);
-
-        alert(
-          "Failed to update job"
-        );
-
+        console.log("Fetch jobs error:", error);
+        setJobs([]);
       } finally {
-
         setLoading(false);
-
       }
     };
 
+    fetchJobs();
+  }, []);
+
+  // ================= DELETE JOB =================
+  const handleDelete = async (id: string) => {
+    try {
+      const confirmDelete = window.confirm("Delete this job?");
+      if (!confirmDelete) return;
+
+      await API.delete(`/jobs/${id}`);
+
+      setJobs((prev) => prev.filter((job) => job._id !== id));
+
+      alert("Job deleted successfully");
+
+    } catch (error) {
+      console.log("Delete error:", error);
+      alert("Delete failed");
+    }
+  };
+
+  // ================= LOADING =================
+  if (loading) {
+    return <div className="p-10 text-xl">Loading jobs...</div>;
+  }
 
   return (
+    <div className="p-10">
 
-    <div className="max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-8">
+      <h1 className="text-4xl font-bold mb-8">Jobs</h1>
 
-      <h1 className="text-3xl font-bold mb-6 text-center">
+      {/* EMPTY STATE */}
+      {jobs.length === 0 ? (
+        <p className="text-gray-600">No jobs available</p>
+      ) : (
+        <div className="grid md:grid-cols-3 gap-6">
 
-        Edit Job
+          {jobs.map((job) => (
+            <div
+              key={job._id}
+              className="bg-white shadow-lg rounded-xl p-6 border"
+            >
 
-      </h1>
+              {/* TITLE */}
+              <h2 className="text-2xl font-bold">
+                {job.title || "No Title"}
+              </h2>
 
+              {/* LOCATION */}
+              <p className="mt-3 text-gray-700">
+                📍 {job.location || "Not specified"}
+              </p>
 
-      <form
-        onSubmit={
-          submitHandler
-        }
-        className="space-y-5"
-      >
+              {/* SALARY */}
+              <p className="mt-2 text-gray-700">
+                💰 ₹{job.salary || "0"}
+              </p>
 
-        {/* TITLE */}
+              {/* COMPANY / USER */}
+              <p className="mt-2 text-gray-700">
+                🏢 {job.createdBy?.name || "Unknown"}
+              </p>
 
-        <div>
+              {/* VIEW */}
+              <Link to={`/jobs/${job._id}`}>
+                <button className="mt-5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                  View Details
+                </button>
+              </Link>
 
-          <label className="block font-semibold mb-2">
+              {/* EDIT / DELETE ONLY OWNER */}
+              {user && job.createdBy && user._id === job.createdBy._id && (
+                <div className="flex gap-3 mt-5">
 
-            Job Title
+                  <Link to={`/edit-job/${job._id}`}>
+                    <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg">
+                      Edit
+                    </button>
+                  </Link>
 
-          </label>
+                  <button
+                    onClick={() => handleDelete(job._id)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+                  >
+                    Delete
+                  </button>
 
-          <input
-            type="text"
-            value={title}
-            onChange={(e) =>
-              setTitle(
-                e.target.value
-              )
-            }
-            required
-            className="w-full border rounded-lg p-3"
-          />
+                </div>
+              )}
 
-        </div>
-
-
-        {/* DESCRIPTION */}
-
-        <div>
-
-          <label className="block font-semibold mb-2">
-
-            Description
-
-          </label>
-
-          <textarea
-            value={description}
-            onChange={(e) =>
-              setDescription(
-                e.target.value
-              )
-            }
-            required
-            rows={4}
-            className="w-full border rounded-lg p-3"
-          />
-
-        </div>
-
-
-        {/* REQUIREMENTS */}
-
-        <div>
-
-          <label className="block font-semibold mb-2">
-
-            Requirements
-
-          </label>
-
-          <input
-            type="text"
-            value={requirements}
-            onChange={(e) =>
-              setRequirements(
-                e.target.value
-              )
-            }
-            required
-            className="w-full border rounded-lg p-3"
-          />
+            </div>
+          ))}
 
         </div>
-
-
-        {/* LOCATION */}
-
-        <div>
-
-          <label className="block font-semibold mb-2">
-
-            Location
-
-          </label>
-
-          <input
-            type="text"
-            value={location}
-            onChange={(e) =>
-              setLocation(
-                e.target.value
-              )
-            }
-            required
-            className="w-full border rounded-lg p-3"
-          />
-
-        </div>
-
-
-        {/* SALARY */}
-
-        <div>
-
-          <label className="block font-semibold mb-2">
-
-            Salary
-
-          </label>
-
-          <input
-            type="number"
-            value={salary}
-            onChange={(e) =>
-              setSalary(
-                e.target.value
-              )
-            }
-            required
-            className="w-full border rounded-lg p-3"
-          />
-
-        </div>
-
-
-        {/* BUTTON */}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold"
-        >
-
-          {
-            loading
-              ? "Updating..."
-              : "Update Job"
-          }
-
-        </button>
-
-      </form>
+      )}
 
     </div>
   );

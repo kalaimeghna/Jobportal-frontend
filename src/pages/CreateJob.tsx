@@ -1,220 +1,101 @@
 import { useState } from "react";
-
 import API from "../services/api";
-
 import { useNavigate } from "react-router-dom";
 
-
 export default function CreateJob() {
+  const navigate = useNavigate();
 
-  const navigate =
-    useNavigate();
-
-
-  const [formData, setFormData] =
-    useState({
-
-      title: "",
-
-      description: "",
-
-      requirements: "",
-
-      location: "",
-
-      salary: "",
-
-    });
-
-
-  // ================= HANDLE CHANGE =================
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    location: "",
+    salary: "",
+    company: "",
+  });
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement |
-      HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-
-    setFormData({
-
-      ...formData,
-
-      [e.target.name]:
-        e.target.value,
-
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
     });
   };
 
-
-  // ================= HANDLE SUBMIT =================
-
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
-
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
+      const { data } = await API.post("/jobs", form);
 
-      const token =
-        localStorage.getItem(
-          "token"
-        );
+      alert(data.message || "Job created");
 
-
-      const { data } =
-        await API.post(
-
-          "/jobs",
-
-          {
-
-            ...formData,
-
-            // CONVERT TO ARRAY
-
-            requirements:
-              formData.requirements
-
-                .split(",")
-
-                .map((skill) =>
-                  skill.trim()
-                ),
-
-          },
-
-          {
-            headers: {
-
-              Authorization:
-                `Bearer ${token}`,
-
-            },
-          }
-        );
-
-
-      alert(
-
-        data.message ||
-
-        "Job Created Successfully"
-
-      );
-
-
-      navigate("/jobs");
+      navigate("/dashboard");
 
     } catch (error) {
-
-  console.log(error);
-
-  if (error instanceof Error) {
-
-    alert(error.message);
-
-  } else {
-
-    alert("Failed to create job");
-
-  }
-
-}
+      console.log("Job create error:", error);
+      alert("Failed to create job");
+    }
   };
 
-
   return (
+    <div className="max-w-xl mx-auto p-6 bg-white shadow rounded">
 
-    <div className="p-10">
+      <h1 className="text-2xl font-bold mb-4">Create Job</h1>
 
-      <h1 className="text-3xl font-bold mb-6">
-
-        Create Job
-
-      </h1>
-
-
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow-lg max-w-xl"
-      >
-
-        {/* JOB TITLE */}
+      <form onSubmit={handleSubmit}>
 
         <input
-          type="text"
           name="title"
           placeholder="Job Title"
-          value={formData.title}
+          value={form.title}
           onChange={handleChange}
-          className="w-full border p-3 mb-4 rounded-lg"
+          className="border p-2 w-full mb-3"
           required
         />
-
-
-        {/* DESCRIPTION */}
 
         <textarea
           name="description"
           placeholder="Job Description"
-          value={formData.description}
+          value={form.description}
           onChange={handleChange}
-          className="w-full border p-3 mb-4 rounded-lg"
-          rows={5}
+          className="border p-2 w-full mb-3"
           required
         />
 
-
-        {/* REQUIREMENTS */}
-
         <input
-          type="text"
-          name="requirements"
-          placeholder="React,Node.js,MongoDB"
-          value={formData.requirements}
-          onChange={handleChange}
-          className="w-full border p-3 mb-4 rounded-lg"
-          required
-        />
-
-
-        {/* LOCATION */}
-
-        <input
-          type="text"
           name="location"
           placeholder="Location"
-          value={formData.location}
+          value={form.location}
           onChange={handleChange}
-          className="w-full border p-3 mb-4 rounded-lg"
+          className="border p-2 w-full mb-3"
           required
         />
-
-
-        {/* SALARY */}
 
         <input
-          type="number"
           name="salary"
           placeholder="Salary"
-          value={formData.salary}
+          value={form.salary}
           onChange={handleChange}
-          className="w-full border p-3 mb-6 rounded-lg"
+          className="border p-2 w-full mb-3"
           required
         />
 
-
-        {/* SUBMIT BUTTON */}
+        {/* IMPORTANT FIELD */}
+        <input
+          name="company"
+          placeholder="Company ID"
+          value={form.company}
+          onChange={handleChange}
+          className="border p-2 w-full mb-4"
+          required
+        />
 
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold"
+          className="bg-blue-600 text-white px-4 py-2 w-full"
         >
-
-          Post Job
-
+          Create Job
         </button>
 
       </form>

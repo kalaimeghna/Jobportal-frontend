@@ -33,20 +33,23 @@ export default function Navbar() {
 
   return (
 
-    <nav className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
+    <nav className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center flex-wrap gap-4">
 
       {/* LOGO */}
 
-      <h1 className="text-2xl font-bold">
+      <Link
+        to="/"
+        className="text-2xl font-bold"
+      >
 
         Job Portal
 
-      </h1>
+      </Link>
 
 
       {/* NAV LINKS */}
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
 
         {/* HOME */}
 
@@ -70,14 +73,18 @@ export default function Navbar() {
           Jobs
 
         </Link>
+
+
         {/* COMPANIES */}
 
-<Link
-  to="/companies"
-  className="hover:text-gray-200 transition"
->
-  Companies
-</Link>
+        <Link
+          to="/companies"
+          className="hover:text-gray-200 transition"
+        >
+
+          Companies
+
+        </Link>
 
 
         {/* RECOMMENDED JOBS */}
@@ -102,6 +109,16 @@ export default function Navbar() {
         {
           user?.role === "employer" && (
             <>
+
+              <Link
+                to="/create-company"
+                className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-200 transition"
+              >
+
+                Create Company
+
+              </Link>
+
 
               <Link
                 to="/create-job"

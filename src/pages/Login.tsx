@@ -1,139 +1,85 @@
 import { useState } from "react";
-
-import {useNavigate,Link,} from "react-router-dom";
-
+import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
 
-
 export default function Login() {
+  const navigate = useNavigate();
 
-  const navigate =
-    useNavigate();
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-  const [formData, setFormData] =
-    useState({
-      email: "",
-      password: "",
-    });
-
+  const [loading, setLoading] = useState(false);
 
   // ================= HANDLE CHANGE =================
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-
-      [e.target.name]:
-        e.target.value,
+      [e.target.name]: e.target.value,
     });
-
   };
 
-
   // ================= HANDLE SUBMIT =================
-  const handleSubmit =
-    async (
-      e: React.FormEvent
-    ) => {
-
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
+      const { data } = await API.post("/auth/login", formData);
 
-      const { data } =
-        await API.post(
-          "/auth/login",
-          formData
-        );
+      // ================= SAVE AUTH =================
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-      console.log(data);
+      alert("Login Successful");
 
-      // ================= SAVE TOKEN =================
-      localStorage.setItem(
-        "token",
-        data.token
-      );
-
-
-      // ================= SAVE USER =================
-      localStorage.setItem(
-        "user",
-
-        JSON.stringify({
-
-          _id:
-            data._id ||
-            data.user?._id,
-
-          name:
-            data.name ||
-            data.user?.name,
-
-          email:
-            data.email ||
-            data.user?.email,
-
-          role:
-            data.role ||
-            data.user?.role,
-
-        })
-      );
-
-
-      alert(
-        "Login Successful"
-      );
-
-      // Redirect
+      // ================= FIXED NAVIGATION (NO ERROR) =================
       navigate(
-        "/dashboard"
+        data.user.role === "employer"
+          ? "/dashboard"
+          : "/jobs"
       );
 
-    } catch (error) {
-
+    } catch (error: unknown) {
       console.log(error);
 
-      alert(
-        "Login Failed"
-      );
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message || "Login Failed");
+      } else {
+        alert("Something went wrong");
+      }
 
+    } finally {
+      setLoading(false);
     }
   };
 
-
   return (
-
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md"
+        className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md"
       >
 
-        {/* Heading */}
         <h1 className="text-4xl font-bold text-center mb-8">
-
           Login
-
         </h1>
 
-
-        {/* Email */}
+        {/* EMAIL */}
         <input
           type="email"
           name="email"
           placeholder="Enter Email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full border p-3 rounded-lg mb-5"
+          className="w-full border p-3 rounded-lg mb-4"
           required
         />
 
-
-        {/* Password */}
+        {/* PASSWORD */}
         <input
           type="password"
           name="password"
@@ -144,28 +90,28 @@ export default function Login() {
           required
         />
 
-
-        {/* Login Button */}
+        {/* LOGIN BUTTON */}
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-lg"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-3 rounded-lg"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
+        {/* FORGOT PASSWORD */}
+        <p className="text-center mt-4">
+          <Link to="/forgot-password" className="text-blue-600">
+            Forgot Password?
+          </Link>
+        </p>
 
-        {/* Register Link */}
+        {/* REGISTER */}
         <p className="text-center mt-6">
-
-          Don't have account?
-
-          <Link
-            to="/register"
-            className="text-blue-600 ml-2"
-          >
+          Don't have an account?
+          <Link to="/register" className="text-blue-600 ml-2">
             Register
           </Link>
-
         </p>
 
       </form>

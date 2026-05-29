@@ -1,179 +1,154 @@
-import {
-  useState,
-} from "react";
-
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../services/api";
-
-import {
-  useNavigate,
-} from "react-router-dom";
-
+import axios from "axios";
 
 export default function CreateCompany() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const navigate =
-    useNavigate();
-
-
-  const [formData, setFormData] =
-    useState({
-
-      companyName: "",
-
-      description: "",
-
-      location: "",
-
-      logo: "",
-    });
-
+  const [formData, setFormData] = useState({
+    companyName: "",
+    description: "",
+    location: "",
+    logo: "",
+    website: "",
+    industry: "",
+    companySize: "",
+    foundedYear: "",
+  });
 
   // ================= HANDLE CHANGE =================
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-
     setFormData({
-
       ...formData,
-
-      [e.target.name]:
-        e.target.value,
+      [e.target.name]: e.target.value,
     });
   };
 
+  // ================= HANDLE SUBMIT =================
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  // ================= SUBMIT =================
+    setLoading(true);
 
-  const handleSubmit =
-    async (
-      e: React.FormEvent
-    ) => {
+    try {
+      const { data } = await API.post("/companies", formData);
 
-      e.preventDefault();
+      alert(data.message || "Company created successfully");
 
-      try {
+      navigate("/companies");
+    } catch (error: unknown) {
+      console.log(error);
 
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
-        const { data } =
-          await API.post(
-
-            "/company",
-
-            formData,
-
-            {
-              headers: {
-
-                Authorization:
-                  `Bearer ${token}`,
-              },
-            }
-          );
-
-
+      if (axios.isAxiosError(error)) {
         alert(
-          data.message
+          error.response?.data?.message || "Failed to create company"
         );
-
-        navigate("/");
-
-      } catch (error) {
-
-        console.log(error);
-
-        alert(
-          "Failed to create company"
-        );
+      } else {
+        alert("Unexpected error occurred");
       }
-    };
-
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-
-    <div className="p-10">
-
-      <h1 className="text-4xl font-bold mb-8">
-
-        Create Company
-
-      </h1>
-
-
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-lg rounded-xl p-6 max-w-xl"
+        className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-xl"
       >
+        <h1 className="text-3xl font-bold text-center mb-6">
+          Create Company
+        </h1>
 
         {/* COMPANY NAME */}
-
         <input
-          type="text"
           name="companyName"
           placeholder="Company Name"
           value={formData.companyName}
           onChange={handleChange}
-          className="w-full border p-3 mb-4 rounded-lg"
+          className="w-full border p-3 rounded-lg mb-3"
           required
         />
 
-
         {/* DESCRIPTION */}
-
         <textarea
           name="description"
           placeholder="Company Description"
           value={formData.description}
           onChange={handleChange}
-          className="w-full border p-3 mb-4 rounded-lg"
-          rows={5}
+          className="w-full border p-3 rounded-lg mb-3"
           required
         />
 
-
         {/* LOCATION */}
-
         <input
-          type="text"
           name="location"
           placeholder="Location"
           value={formData.location}
           onChange={handleChange}
-          className="w-full border p-3 mb-4 rounded-lg"
+          className="w-full border p-3 rounded-lg mb-3"
           required
         />
 
-
         {/* LOGO */}
-
         <input
-          type="text"
           name="logo"
           placeholder="Logo URL"
           value={formData.logo}
           onChange={handleChange}
-          className="w-full border p-3 mb-6 rounded-lg"
+          className="w-full border p-3 rounded-lg mb-3"
         />
 
+        {/* WEBSITE */}
+        <input
+          name="website"
+          placeholder="Website"
+          value={formData.website}
+          onChange={handleChange}
+          className="w-full border p-3 rounded-lg mb-3"
+        />
 
-        {/* BUTTON */}
+        {/* INDUSTRY */}
+        <input
+          name="industry"
+          placeholder="Industry"
+          value={formData.industry}
+          onChange={handleChange}
+          className="w-full border p-3 rounded-lg mb-3"
+        />
 
+        {/* COMPANY SIZE */}
+        <input
+          name="companySize"
+          placeholder="Company Size"
+          value={formData.companySize}
+          onChange={handleChange}
+          className="w-full border p-3 rounded-lg mb-3"
+        />
+
+        {/* FOUNDED YEAR */}
+        <input
+          name="foundedYear"
+          placeholder="Founded Year"
+          value={formData.foundedYear}
+          onChange={handleChange}
+          className="w-full border p-3 rounded-lg mb-5"
+        />
+
+        {/* SUBMIT BUTTON */}
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
         >
-
-          Create Company
-
+          {loading ? "Creating..." : "Create Company"}
         </button>
-
       </form>
-
     </div>
   );
 }
