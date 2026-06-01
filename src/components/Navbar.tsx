@@ -1,49 +1,32 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-
-// ================= USER TYPE =================
-type User = {
-  _id: string;
-  name: string;
-  email: string;
-  role: "employer" | "jobseeker";
-};
-
-// ================= GET USER =================
-const getUser = (): User | null => {
-  try {
-    const data = localStorage.getItem("user");
-    return data ? JSON.parse(data) : null;
-  } catch {
-    return null;
-  }
-};
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import type { RootState } from "../Redux/store";
+import { logout } from "../Redux/authSlice";
 
 export default function Navbar() {
-  const [user, setUser] = useState<User | null>(getUser());
+  const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // ================= SYNC USER =================
-  useEffect(() => {
-    const syncUser = () => setUser(getUser());
+  // ================= AUTH STATE =================
+  const reduxUser = useSelector((state: RootState) => state.auth.user);
+  const storageUser = JSON.parse(localStorage.getItem("user") || "null");
 
-    window.addEventListener("storage", syncUser);
-    syncUser();
-
-    return () => window.removeEventListener("storage", syncUser);
-  }, []);
+  const user = reduxUser || storageUser;
 
   // ================= LOGOUT =================
   const logoutHandler = () => {
+    dispatch(logout());
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    setUser(null);
-    window.location.href = "/login";
+    navigate("/login");
   };
 
   // ================= ACTIVE LINK =================
   const isActive = (path: string) =>
-    location.pathname === path ? "text-yellow-300 font-bold" : "";
+    location.pathname === path
+      ? "text-yellow-300 font-bold"
+      : "hover:text-yellow-200";
 
   return (
     <nav className="bg-blue-600 text-white px-6 py-4 flex justify-between items-center flex-wrap gap-4">
@@ -53,46 +36,28 @@ export default function Navbar() {
         Job Portal
       </Link>
 
-      {/* LINKS */}
       <div className="flex items-center gap-4 flex-wrap">
 
-        <Link to="/" className={isActive("/")}>
-          Home
-        </Link>
+        {/* COMMON LINKS */}
+        <Link to="/" className={isActive("/")}>Home</Link>
+        <Link to="/jobs" className={isActive("/jobs")}>Jobs</Link>
+        <Link to="/companies" className={isActive("/companies")}>Companies</Link>
 
-        <Link to="/jobs" className={isActive("/jobs")}>
-          Jobs
-        </Link>
-
-        <Link to="/companies" className={isActive("/companies")}>
-          Companies
-        </Link>
-
-        {/* JOBSEEKER */}
+        {/* JOBSEEKER LINKS */}
         {user?.role === "jobseeker" && (
           <>
-            <Link to="/recommended-jobs">
-              Recommended Jobs
-            </Link>
-
-            <Link to="/applications">
+            <Link to="/applications" className={isActive("/applications")}>
               My Applications
             </Link>
-
-            <Link to="/resume-upload">
+            <Link to="/resume-upload" className={isActive("/resume-upload")}>
               Resume
             </Link>
           </>
         )}
 
-        {/* EMPLOYER */}
+        {/* EMPLOYER LINKS */}
         {user?.role === "employer" && (
           <>
-            {/* FIXED ROUTES (EXIST IN YOUR ROUTER) */}
-            <Link to="/dashboard" className={isActive("/dashboard")}>
-              Dashboard
-            </Link>
-
             <Link to="/create-company" className={isActive("/create-company")}>
               Create Company
             </Link>
@@ -100,36 +65,48 @@ export default function Navbar() {
             <Link to="/create-job" className={isActive("/create-job")}>
               Create Job
             </Link>
+
+            <Link to="/dashboard" className={isActive("/dashboard")}>
+              Dashboard
+            </Link>
+
+            {/* ⭐ ATS DASHBOARD */}
+            <Link
+              to="/ats-dashboard"
+              className={isActive("/ats-dashboard")}
+            >
+              ATS Dashboard
+            </Link>
           </>
         )}
 
-        {/* PROFILE */}
+        {/* COMMON AUTHENTICATED LINKS */}
         {user && (
-          <Link to="/profile" className={isActive("/profile")}>
-            Profile
-          </Link>
-        )}
-
-        {/* PASSWORD */}
-        {user && (
-          <Link to="/change-password">
-            Change Password
-          </Link>
-        )}
-
-        {/* AUTH */}
-        {!user && (
           <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
+            <Link to="/profile" className={isActive("/profile")}>
+              Profile
+            </Link>
+
+            <Link to="/change-password" className={isActive("/change-password")}>
+              Change Password
+            </Link>
           </>
         )}
 
-        {/* LOGOUT */}
-        {user && (
+        {/* AUTH LINKS */}
+        {!user ? (
+          <>
+            <Link to="/login" className={isActive("/login")}>
+              Login
+            </Link>
+            <Link to="/register" className={isActive("/register")}>
+              Register
+            </Link>
+          </>
+        ) : (
           <button
             onClick={logoutHandler}
-            className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600"
+            className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition"
           >
             Logout
           </button>

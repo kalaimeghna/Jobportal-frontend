@@ -6,48 +6,65 @@ import API from "../services/api";
 export default function Register() {
   const navigate = useNavigate();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("jobseeker");
-  const [phone, setPhone] = useState("");
-  const [skills, setSkills] = useState("");
-  const [experience, setExperience] = useState("");
-  const [education, setEducation] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "jobseeker",
+    phone: "",
+    skills: "",
+    experience: "",
+    education: "",
+    location: "",
+    bio: "",
+  });
+
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement |
+      HTMLTextAreaElement |
+      HTMLSelectElement
+    >
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleRegister = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
 
-    setLoading(true);
-
     try {
+      setLoading(true);
+
       const payload = {
-        name,
-        email,
-        password,
-        role,
-        phone,
-        skills: skills
-          ? skills.split(",").map((s) => s.trim())
+        ...formData,
+        skills: formData.skills
+          ? formData.skills
+              .split(",")
+              .map((skill) => skill.trim())
           : [],
-        experience,
-        education,
       };
 
-      const { data } = await API.post("/auth/register", payload);
+      const { data } = await API.post(
+        "/auth/register",
+        payload
+      );
 
-      console.log("REGISTER RESPONSE:", data);
+      if (data.success) {
+        alert(
+          "Registration successful. Please login."
+        );
 
-      // ❌ IMPORTANT FIX:
-      // DO NOT STORE TOKEN HERE
-
-      alert("Registration successful. Please login.");
-
-      navigate("/login");
-
-    } catch (error: unknown) {
-      console.log(error);
+        navigate("/login");
+      }
+    } catch (error) {
+      console.error(error);
 
       if (axios.isAxiosError(error)) {
         alert(
@@ -57,118 +74,143 @@ export default function Register() {
       } else {
         alert("Something went wrong");
       }
-
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
-
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-10">
       <form
         onSubmit={handleRegister}
-        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg space-y-5"
+        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl"
       >
-
-        <h1 className="text-3xl font-bold text-center">
+        <h1 className="text-3xl font-bold text-center mb-6">
           Create Account
         </h1>
 
-        {/* NAME */}
+        <div className="grid md:grid-cols-2 gap-4">
+
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            className="border p-3 rounded-lg"
+            required
+          />
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            className="border p-3 rounded-lg"
+            required
+          />
+
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            className="border p-3 rounded-lg"
+            required
+          />
+
+          <input
+            type="text"
+            name="phone"
+            placeholder="Phone Number"
+            value={formData.phone}
+            onChange={handleChange}
+            className="border p-3 rounded-lg"
+          />
+
+          <input
+            type="text"
+            name="experience"
+            placeholder="Experience"
+            value={formData.experience}
+            onChange={handleChange}
+            className="border p-3 rounded-lg"
+          />
+
+          <input
+            type="text"
+            name="education"
+            placeholder="Education"
+            value={formData.education}
+            onChange={handleChange}
+            className="border p-3 rounded-lg"
+          />
+
+          <input
+            type="text"
+            name="location"
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleChange}
+            className="border p-3 rounded-lg"
+          />
+
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            className="border p-3 rounded-lg"
+          >
+            <option value="jobseeker">
+              Job Seeker
+            </option>
+            <option value="employer">
+              Employer
+            </option>
+          </select>
+
+        </div>
+
         <input
           type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border p-3 rounded-lg"
-          required
+          name="skills"
+          placeholder="Skills (React, Node.js, MongoDB)"
+          value={formData.skills}
+          onChange={handleChange}
+          className="border p-3 rounded-lg w-full mt-4"
         />
 
-        {/* EMAIL */}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border p-3 rounded-lg"
-          required
+        <textarea
+          name="bio"
+          placeholder="Short Bio"
+          value={formData.bio}
+          onChange={handleChange}
+          rows={4}
+          className="border p-3 rounded-lg w-full mt-4"
         />
 
-        {/* PASSWORD */}
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border p-3 rounded-lg"
-          required
-        />
-
-        {/* PHONE */}
-        <input
-          type="text"
-          placeholder="Phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="w-full border p-3 rounded-lg"
-        />
-
-        {/* SKILLS */}
-        <input
-          type="text"
-          placeholder="React, Node.js"
-          value={skills}
-          onChange={(e) => setSkills(e.target.value)}
-          className="w-full border p-3 rounded-lg"
-        />
-
-        {/* EXPERIENCE */}
-        <input
-          type="text"
-          placeholder="Experience"
-          value={experience}
-          onChange={(e) => setExperience(e.target.value)}
-          className="w-full border p-3 rounded-lg"
-        />
-
-        {/* EDUCATION */}
-        <input
-          type="text"
-          placeholder="Education"
-          value={education}
-          onChange={(e) => setEducation(e.target.value)}
-          className="w-full border p-3 rounded-lg"
-        />
-
-        {/* ROLE */}
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          className="w-full border p-3 rounded-lg"
-        >
-          <option value="jobseeker">Job Seeker</option>
-          <option value="employer">Employer</option>
-        </select>
-
-        {/* BUTTON */}
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white w-full py-3 rounded-lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white w-full py-3 rounded-lg mt-6"
         >
-          {loading ? "Registering..." : "Register"}
+          {loading
+            ? "Registering..."
+            : "Register"}
         </button>
 
-        <p className="text-center">
+        <p className="text-center mt-5">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600">
+          <Link
+            to="/login"
+            className="text-blue-600 font-medium"
+          >
             Login
           </Link>
         </p>
-
       </form>
-
     </div>
   );
 }

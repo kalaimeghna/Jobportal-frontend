@@ -18,15 +18,17 @@ import JobApplicants from "../pages/JobApplicants.tsx";
 import EmployerApplications from "../pages/EmployerApplications.tsx";
 
 import ForgotPassword from "../pages/ForgotPassword.tsx";
-import ResetPassword from "../pages/ResetPassword.tsx";
+import ResetPassword from "../pages/resetPassword.tsx";
 import ChangePassword from "../pages/ChangePassword.tsx";
 
-import RecommendedJobs from "../pages/RecommendedJob.tsx";
+import RecommendedJobs from "../pages/recommendedJob.tsx";
 import ResumeUpload from "../pages/resumeUpload.tsx";
 
 import CreateCompany from "../pages/CreateCompany.tsx";
 import Companies from "../pages/Companies.tsx";
 import CompanyDetails from "../pages/CompanyDetails.tsx";
+import EmployerDashboard from "../pages/EmployerDashboard.tsx";
+import ATSDashboard from "../pages/atsDashboard.tsx";
 
 // ================= ROUTES =================
 export default function AppRoutes() {
@@ -71,6 +73,10 @@ export default function AppRoutes() {
 
       {/* 404 */}
       <Route path="*" element={<div>404 - Page Not Found</div>} />
+      <Route path="/employer/dashboard" element={<EmployerDashboard />} />
+
+
+      <Route path="/ats-dashboard" element={<ATSDashboard />} />
 
     </Routes>
   );

@@ -1,22 +1,14 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import axios from "axios";
 
-// ================= TYPE =================
 type Job = {
   _id: string;
   title: string;
   location: string;
-  salary: string;
-};
-
-const getUser = () => {
-  try {
-    const user = localStorage.getItem("user");
-    return user ? JSON.parse(user) : null;
-  } catch {
-    return null;
-  }
+  salary: number;
+  createdAt?: string;
 };
 
 export default function Dashboard() {
@@ -24,34 +16,36 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const user = getUser();
+  const navigate = useNavigate();
 
   // ================= FETCH JOBS =================
   useEffect(() => {
     const fetchJobs = async () => {
       try {
+        setLoading(true);
         setError("");
 
-        // 🔥 IMPORTANT: employer-specific API (best practice)
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+
+        if (!user || user.role !== "employer") {
+          setError("Only employers can access dashboard");
+          return;
+        }
+
         const res = await API.get("/jobs?mine=true");
 
         console.log("Dashboard API:", res.data);
 
-        const jobList = res.data.jobs || res.data || [];
+        setJobs(res.data.jobs || []);
 
-        setJobs(Array.isArray(jobList) ? jobList : []);
-
-      } catch (error: unknown) {
-        console.log("Dashboard error:", error);
+      } catch (error) {
+        console.log("Dashboard Error:", error);
 
         if (axios.isAxiosError(error)) {
-          setError(error.response?.data?.message || "Failed to load jobs");
+          setError(error.response?.data?.message || "Failed to load dashboard");
         } else {
           setError("Something went wrong");
         }
-
-        setJobs([]);
-
       } finally {
         setLoading(false);
       }
@@ -60,70 +54,121 @@ export default function Dashboard() {
     fetchJobs();
   }, []);
 
+  // ================= DELETE JOB (FIXED STATE SAFETY) =================
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this job?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await API.delete(`/jobs/${id}`);
+
+      setJobs((prev) => prev.filter((job) => job._id !== id));
+
+      alert("Job deleted successfully");
+    } catch (error) {
+      console.log(error);
+      alert("Failed to delete job");
+    }
+  };
+
   // ================= LOADING =================
   if (loading) {
-    return (
-      <div className="text-center mt-10 text-2xl">
-        Loading...
-      </div>
-    );
+    return <div className="text-center mt-10 text-2xl">Loading dashboard...</div>;
   }
 
-  // ================= ROLE CHECK =================
-  if (user?.role !== "employer") {
-    return (
-      <div className="p-10 text-red-500">
-        Only employers can access dashboard
-      </div>
-    );
+  // ================= ERROR =================
+  if (error) {
+    return <div className="text-center mt-10 text-red-600 text-xl">{error}</div>;
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8">
+    <div className="max-w-7xl mx-auto p-8">
 
-      <h1 className="text-4xl font-bold mb-8">
-        Employer Dashboard
-      </h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold">Employer Dashboard</h1>
 
-      {/* ERROR */}
-      {error && (
-        <p className="text-red-500 mb-4">
-          {error}
-        </p>
-      )}
+        <button
+          onClick={() => navigate("/create-job")}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg"
+        >
+          + Create Job
+        </button>
+      </div>
 
-      {/* EMPTY */}
-      {!error && jobs.length === 0 ? (
-        <div className="text-gray-500">
-          No jobs posted yet
+      <div className="mb-8">
+        <div className="bg-white shadow-md rounded-xl p-6">
+          <h2 className="text-2xl font-semibold">Total Jobs Posted</h2>
+
+          <p className="text-4xl font-bold text-blue-600 mt-2">
+            {jobs.length}
+          </p>
+        </div>
+      </div>
+
+      {jobs.length === 0 ? (
+        <div className="bg-white shadow rounded-xl p-6">
+          <p className="text-gray-500">No jobs posted yet.</p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
           {jobs.map((job) => (
-            <div
-              key={job._id}
-              className="bg-white shadow-lg rounded-xl p-6 border"
-            >
+            <div key={job._id} className="bg-white shadow-lg rounded-xl p-6 border">
 
-              <h2 className="text-2xl font-bold mb-3">
-                {job.title}
-              </h2>
+              <h2 className="text-2xl font-bold mb-3">{job.title}</h2>
 
-              <p className="mb-2">
-                📍 {job.location}
+              <p className="text-gray-600 mb-2">📍 {job.location}</p>
+
+              <p className="text-green-600 font-semibold mb-3">
+                💰 ₹{job.salary}
               </p>
 
-              <p>
-                💰 {job.salary}
-              </p>
+              {job.createdAt && (
+                <p className="text-sm text-gray-500 mb-4">
+                  Posted on {new Date(job.createdAt).toLocaleDateString()}
+                </p>
+              )}
+
+              <div className="flex gap-4 flex-wrap">
+
+                <button
+                  onClick={() => navigate(`/jobs/${job._id}`)}
+                  className="text-blue-600 hover:underline"
+                >
+                  View
+                </button>
+
+                <button
+                  onClick={() => navigate(`/edit-job/${job._id}`)}
+                  className="text-green-600 hover:underline"
+                >
+                  Edit
+                </button>
+
+                <button
+                  onClick={() => navigate(`/job-applicants/${job._id}`)}
+                  className="text-purple-600 hover:underline"
+                >
+                  Applicants
+                </button>
+
+                <button
+                  onClick={() => handleDelete(job._id)}
+                  className="text-red-600 hover:underline"
+                >
+                  Delete
+                </button>
+
+              </div>
 
             </div>
           ))}
 
         </div>
       )}
-
     </div>
   );
 }

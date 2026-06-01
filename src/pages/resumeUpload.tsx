@@ -1,328 +1,121 @@
-import {
-  useState,
-  useEffect,
-} from "react";
-
+import { useState, useEffect } from "react";
 import API from "../services/api";
 
-
-// ================= TYPES =================
-
 type Resume = {
-
   _id: string;
-
   resumeUrl: string;
 };
 
-
 export default function ResumeUpload() {
+  const [file, setFile] = useState<File | null>(null);
+  const [resumes, setResumes] = useState<Resume[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [file, setFile] =
-    useState<File | null>(
-      null
-    );
-
-  const [resumes, setResumes] =
-    useState<Resume[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
+  const token = localStorage.getItem("token");
 
   // ================= FETCH RESUMES =================
+  const fetchResumes = async () => {
+    try {
+      const { data } = await API.get("/resume/my", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  const fetchResumes =
-    async () => {
+      setResumes(data.resumes || []);
+    } catch (error) {
+      console.log(error);
+      setResumes([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      try {
+  // ================= USE EFFECT (SAFE) =================
+  useEffect(() => {
+    let ignore = false;
 
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
-        const { data } =
-          await API.get(
-
-            "/resume/my",
-
-            {
-              headers: {
-
-                Authorization:
-                  `Bearer ${token}`,
-              },
-            }
-          );
-
-        setResumes(
-          data.resumes
-        );
-
-      } catch (error) {
-
-        console.log(error);
-
-      } finally {
-
-        setLoading(false);
-      }
+    const load = async () => {
+      if (ignore) return;
+      await fetchResumes();
     };
 
+    load();
 
-  // ================= USE EFFECT =================
-
-  useEffect(() => {
-
-    const loadData =
-      async () => {
-
-        await fetchResumes();
-      };
-
-    loadData();
-
+    return () => {
+      ignore = true;
+    };
   }, []);
 
+  // ================= UPLOAD =================
+  const handleUpload = async () => {
+    if (!file) return alert("Select file");
 
-  // ================= HANDLE UPLOAD =================
+    const formData = new FormData();
+    formData.append("resume", file);
 
-  const handleUpload =
-    async () => {
+    try {
+      await API.post("/resume/upload", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      if (!file) {
+      setFile(null);
+      fetchResumes();
+    } catch (err) {
+      console.log(err);
+      alert("Upload failed");
+    }
+  };
 
-        alert(
-          "Please select file"
-        );
+  // ================= DELETE =================
+  const deleteResume = async (id: string) => {
+    try {
+      await API.delete(`/resume/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-        return;
-      }
-
-      try {
-
-        const formData =
-          new FormData();
-
-        formData.append(
-          "resume",
-          file
-        );
-
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
-        const { data } =
-          await API.post(
-
-            "/resume/upload",
-
-            formData,
-
-            {
-              headers: {
-
-                Authorization:
-                  `Bearer ${token}`,
-
-                "Content-Type":
-                  "multipart/form-data",
-              },
-            }
-          );
-
-        alert(
-          data.message
-        );
-
-        setFile(null);
-
-        fetchResumes();
-
-      } catch (error) {
-
-        console.log(error);
-
-        alert(
-          "Upload failed"
-        );
-      }
-    };
-
-
-  // ================= DELETE RESUME =================
-
-  const deleteResume =
-    async (id: string) => {
-
-      try {
-
-        const token =
-          localStorage.getItem(
-            "token"
-          );
-
-        const { data } =
-          await API.delete(
-
-            `/resume/${id}`,
-
-            {
-              headers: {
-
-                Authorization:
-                  `Bearer ${token}`,
-              },
-            }
-          );
-
-        alert(
-          data.message
-        );
-
-        fetchResumes();
-
-      } catch (error) {
-
-        console.log(error);
-
-        alert(
-          "Delete failed"
-        );
-      }
-    };
-
-
-  // ================= LOADING =================
+      fetchResumes();
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   if (loading) {
-
-    return (
-
-      <div className="p-10 text-xl">
-
-        Loading...
-
-      </div>
-    );
+    return <div className="p-10 text-xl">Loading...</div>;
   }
 
-
   return (
-
     <div className="p-10">
+      <h1 className="text-3xl font-bold mb-6">Resume Upload</h1>
 
-      {/* TITLE */}
+      <input
+        type="file"
+        accept=".pdf,.doc,.docx"
+        onChange={(e) => setFile(e.target.files?.[0] || null)}
+      />
 
-      <h1 className="text-4xl font-bold mb-8">
-
-        Resume Upload
-
-      </h1>
-
-
-      {/* FILE INPUT */}
-
-      <div className="mb-6">
-
-        <input
-          type="file"
-          accept=".pdf,.doc,.docx"
-          onChange={(e) =>
-
-            setFile(
-              e.target.files?.[0] ||
-              null
-            )
-          }
-          className="border p-3 rounded-lg"
-        />
-
-      </div>
-
-
-      {/* UPLOAD BUTTON */}
-
-      <button
-        onClick={handleUpload}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg"
-      >
-
-        Upload Resume
-
+      <button onClick={handleUpload} className="ml-3 bg-blue-600 text-white px-4 py-2">
+        Upload
       </button>
 
-
-      {/* RESUME LIST */}
-
       <div className="mt-10">
+        {resumes.map((r) => (
+          <div key={r._id} className="flex justify-between p-3 shadow mb-2">
+            <a href={r.resumeUrl} target="_blank">
+              View
+            </a>
 
-        <h2 className="text-2xl font-bold mb-4">
-
-          My Resumes
-
-        </h2>
-
-
-        {
-          resumes.length === 0 ? (
-
-            <p className="text-gray-600">
-
-              No resumes uploaded
-
-            </p>
-
-          ) : (
-
-            resumes.map((resume) => (
-
-              <div
-                key={resume._id}
-                className="bg-white shadow-lg rounded-xl p-4 mb-4 flex justify-between items-center"
-              >
-
-                {/* VIEW */}
-
-                <a
-                  href={
-                    resume.resumeUrl
-                  }
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-blue-600 underline"
-                >
-
-                  View Resume
-
-                </a>
-
-
-                {/* DELETE */}
-
-                <button
-                  onClick={() =>
-                    deleteResume(
-                      resume._id
-                    )
-                  }
-                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
-                >
-
-                  Delete
-
-                </button>
-
-              </div>
-            ))
-          )
-        }
-
+            <button onClick={() => deleteResume(r._id)}>
+              Delete
+            </button>
+          </div>
+        ))}
       </div>
-
     </div>
   );
 }

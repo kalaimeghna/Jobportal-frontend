@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import API from "../services/api";
-import axios from "axios";
 
-// ================= TYPES =================
 type Job = {
   _id: string;
   title: string;
   description: string;
   location: string;
-  salary: string;
+  salary: number;
   company?: {
     _id: string;
     companyName: string;
@@ -23,15 +21,23 @@ export default function JobDetails() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
 
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [coverLetter, setCoverLetter] = useState("");
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const isJobseeker = user?.role === "jobseeker";
+
   // ================= FETCH JOB =================
   useEffect(() => {
     const fetchJob = async () => {
       try {
-        const res = await API.get(`/jobs/${id}`);
+        if (!id) return;
 
-        setJob(res.data.job || res.data.data || res.data);
+        const res = await API.get(`/jobs/${id}`);
+        setJob(res.data.job);
       } catch (error) {
         console.log("Fetch job error:", error);
+        setJob(null);
       } finally {
         setLoading(false);
       }
@@ -43,37 +49,47 @@ export default function JobDetails() {
   // ================= APPLY JOB =================
   const handleApply = async () => {
     try {
+      if (!resumeFile) {
+        alert("Please upload your resume");
+        return;
+      }
+
       setApplying(true);
 
+      const token = localStorage.getItem("token");
+
+      const formData = new FormData();
+      formData.append("resume", resumeFile);
+      formData.append("coverLetterUrl", coverLetter);
+
       const res = await API.post(
-        `/applications/apply/${id}`
+        `/applications/apply/${id}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // ✅ FIXED
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
 
       alert(res.data.message || "Applied successfully");
 
-    } catch (error: unknown) {
+      setResumeFile(null);
+      setCoverLetter("");
+
+    } catch (error) {
       console.log("Apply error:", error);
-
-      if (axios.isAxiosError(error)) {
-        alert(
-          error.response?.data?.message ||
-            "Already applied or something went wrong"
-        );
-      } else {
-        alert("Something went wrong");
-      }
-
+      alert("Error applying job");
     } finally {
       setApplying(false);
     }
   };
 
-  // ================= LOADING =================
   if (loading) {
     return <div className="p-10">Loading job...</div>;
   }
 
-  // ================= NOT FOUND =================
   if (!job) {
     return <div className="p-10 text-red-500">Job not found</div>;
   }
@@ -81,39 +97,47 @@ export default function JobDetails() {
   return (
     <div className="max-w-4xl mx-auto p-8 bg-white shadow rounded-lg">
 
-      {/* TITLE */}
-      <h1 className="text-3xl font-bold mb-4">
-        {job.title}
-      </h1>
+      <h1 className="text-3xl font-bold mb-4">{job.title}</h1>
 
-      {/* COMPANY */}
       <p className="text-gray-600 mb-2">
-        🏢 {job.company?.companyName || "Unknown Company"}
+        🏢 {job.company?.companyName ?? "Company not available"}
       </p>
 
-      {/* LOCATION */}
-      <p className="text-gray-700 mb-2">
-        📍 {job.location}
-      </p>
+      <p className="text-gray-700 mb-2">📍 {job.location}</p>
 
-      {/* SALARY */}
-      <p className="text-green-600 mb-4">
-        💰 {job.salary}
-      </p>
+      <p className="text-green-600 mb-4">💰 ₹{job.salary}</p>
 
-      {/* DESCRIPTION */}
-      <p className="text-gray-700 leading-relaxed mb-6">
-        {job.description}
-      </p>
+      <p className="text-gray-700 mb-6">{job.description}</p>
 
-      {/* APPLY BUTTON */}
-      <button
-        onClick={handleApply}
-        disabled={applying}
-        className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded"
-      >
-        {applying ? "Applying..." : "Apply Job"}
-      </button>
+      {isJobseeker && (
+        <div className="border p-4 rounded mb-4">
+
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) =>
+              setResumeFile(e.target.files?.[0] || null)
+            }
+            className="border p-2 w-full mb-3"
+          />
+
+          <textarea
+            placeholder="Cover Letter (optional)"
+            value={coverLetter}
+            onChange={(e) => setCoverLetter(e.target.value)}
+            className="border p-2 w-full mb-3"
+          />
+
+          <button
+            onClick={handleApply}
+            disabled={applying}
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded w-full"
+          >
+            {applying ? "Applying..." : "Apply Job"}
+          </button>
+
+        </div>
+      )}
 
     </div>
   );
