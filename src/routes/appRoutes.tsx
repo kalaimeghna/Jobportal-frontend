@@ -1,82 +1,174 @@
 import { Routes, Route } from "react-router-dom";
 
-// ================= PAGES =================
-import Home from "../pages/Home.tsx";
-import Login from "../pages/Login.tsx";
-import Register from "../pages/Register.tsx";
+// pages
+import Home from "../Pages/Home";
+import Login from "../Pages/Login";
+import Register from "../Pages/Register";
 
-import Jobs from "../pages/Jobs.tsx";
-import JobDetails from "../pages/JobDetails.tsx";
-import EditJob from "../pages/EditJob.tsx";
-import CreateJob from "../pages/CreateJob.tsx";
+import Jobs from "../Pages/Jobs";
+import JobDetails from "../Pages/JobDetails";
+import EditJob from "../Pages/EditJob";
+import CreateJob from "../Pages/CreateJob";
 
-import Dashboard from "../pages/Dashboard.tsx";
-import Profile from "../pages/Profile.tsx";
+import Dashboard from "../Pages/Dashboard";
+import Profile from "../Pages/Profile";
 
-import Applications from "../pages/Applications.tsx";
-import JobApplicants from "../pages/JobApplicants.tsx";
-import EmployerApplications from "../pages/EmployerApplications.tsx";
+import Applications from "../Pages/Applications";
+import JobApplicants from "../Pages/JobApplicants";
+import EmployerApplications from "../Pages/EmployerApplications";
 
-import ForgotPassword from "../pages/ForgotPassword.tsx";
-import ResetPassword from "../pages/resetPassword.tsx";
-import ChangePassword from "../pages/ChangePassword.tsx";
+import ForgotPassword from "../Pages/ForgotPassword";
+import ResetPassword from "../Pages/ResetPassword";
+import ChangePassword from "../Pages/ChangePassword";
 
-import RecommendedJobs from "../pages/recommendedJob.tsx";
-import ResumeUpload from "../pages/resumeUpload.tsx";
+import RecommendedJobs from "../Pages/RecommendedJob";
+import ResumeUpload from "../Pages/ResumeUpload";
 
-import CreateCompany from "../pages/CreateCompany.tsx";
-import Companies from "../pages/Companies.tsx";
-import CompanyDetails from "../pages/CompanyDetails.tsx";
-import EmployerDashboard from "../pages/EmployerDashboard.tsx";
-import ATSDashboard from "../pages/atsDashboard.tsx";
+import CreateCompany from "../Pages/CreateCompany";
+import Companies from "../Pages/Companies";
+import CompanyDetails from "../Pages/CompanyDetails";
 
-// ================= ROUTES =================
+import EmployerDashboard from "../Pages/EmployerDashboard";
+import ATSDashboard from "../Pages/ATSDashboard";
+
+import ProtectedRoute from "../components/ProtectedRoute";
+
 export default function AppRoutes() {
   return (
     <Routes>
 
-      {/* HOME */}
+      {/* PUBLIC ROUTES */}
       <Route path="/" element={<Home />} />
-
-      {/* AUTH */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-
-      {/* JOBS */}
       <Route path="/jobs" element={<Jobs />} />
       <Route path="/jobs/:id" element={<JobDetails />} />
-      <Route path="/edit-job/:id" element={<EditJob />} />
-      <Route path="/create-job" element={<CreateJob />} />
 
-      {/* DASHBOARD */}
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/profile" element={<Profile />} />
+      {/* AUTH ROUTES */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      
 
-      {/* APPLICATIONS */}
-      <Route path="/applications" element={<Applications />} />
-      <Route path="/job-applicants/:id" element={<JobApplicants />} />
-      <Route path="/employer-applications/:id" element={<EmployerApplications />} />
+      {/* USER PROTECTED ROUTES */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/applications"
+        element={
+          <ProtectedRoute>
+            <Applications />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/resume-upload"
+        element={
+          <ProtectedRoute>
+            <ResumeUpload />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/recommended-jobs"
+        element={
+          <ProtectedRoute>
+            <RecommendedJobs />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* EMPLOYER PROTECTED ROUTES */}
+      <Route
+        path="/create-job"
+        element={
+          <ProtectedRoute role="employer">
+            <CreateJob />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/edit-job/:id"
+        element={
+          <ProtectedRoute role="employer">
+            <EditJob />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/job-applicants/:id"
+        element={
+          <ProtectedRoute role="employer">
+            <JobApplicants />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/employer-applications/:id"
+        element={
+          <ProtectedRoute role="employer">
+            <EmployerApplications />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/employer/dashboard"
+        element={
+          <ProtectedRoute role="employer">
+            <EmployerDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/create-company"
+        element={
+          <ProtectedRoute role="employer">
+            <CreateCompany />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* PUBLIC COMPANY ROUTES */}
+      <Route path="/companies" element={<Companies />} />
+      <Route path="/companies/:id" element={<CompanyDetails />} />
+
+      {/* ATS */}
+      <Route
+        path="/ats-dashboard"
+        element={
+          <ProtectedRoute role="employer">
+            <ATSDashboard />
+          </ProtectedRoute>
+        }
+      />
 
       {/* PASSWORD */}
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/change-password" element={<ChangePassword />} />
 
-      {/* EXTRA FEATURES */}
-      <Route path="/recommended-jobs" element={<RecommendedJobs />} />
-      <Route path="/resume-upload" element={<ResumeUpload />} />
-
-      {/* COMPANY */}
-      <Route path="/create-company" element={<CreateCompany />} />
-      <Route path="/companies" element={<Companies />} />
-      <Route path="/companies/:id" element={<CompanyDetails />} />
-
       {/* 404 */}
       <Route path="*" element={<div>404 - Page Not Found</div>} />
-      <Route path="/employer/dashboard" element={<EmployerDashboard />} />
-
-
-      <Route path="/ats-dashboard" element={<ATSDashboard />} />
 
     </Routes>
   );

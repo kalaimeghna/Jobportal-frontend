@@ -20,12 +20,11 @@ export default function Register() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<
-      HTMLInputElement |
-      HTMLTextAreaElement |
-      HTMLSelectElement
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
     setFormData({
@@ -34,46 +33,41 @@ export default function Register() {
     });
   };
 
-  const handleRegister = async (
-    e: React.FormEvent
-  ) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       setLoading(true);
+      setError("");
 
+      // ================= PAYLOAD FIX =================
       const payload = {
         ...formData,
+        role: formData.role === "jobseeker" ? "user" : "employer",
         skills: formData.skills
-          ? formData.skills
-              .split(",")
-              .map((skill) => skill.trim())
+          ? formData.skills.split(",").map((s) => s.trim())
           : [],
       };
 
-      const { data } = await API.post(
-        "/auth/register",
-        payload
-      );
+      const { data } = await API.post("/auth/register", payload);
 
-      if (data.success) {
-        alert(
-          "Registration successful. Please login."
-        );
-
-        navigate("/login");
+      if (!data.success) {
+        setError(data.message || "Registration failed");
+        return;
       }
+
+      alert("Registration successful. Please login.");
+      navigate("/login");
+
     } catch (error) {
       console.error(error);
 
-      if (axios.isAxiosError(error)) {
-        alert(
-          error.response?.data?.message ||
-            "Registration failed"
-        );
-      } else {
-        alert("Something went wrong");
-      }
+      const errorMessage = axios.isAxiosError(error)
+        ? error.response?.data?.message
+        : "Something went wrong";
+
+      setError(errorMessage || "Registration failed");
+
     } finally {
       setLoading(false);
     }
@@ -81,13 +75,22 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 py-10">
+
       <form
         onSubmit={handleRegister}
         className="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl"
       >
+
         <h1 className="text-3xl font-bold text-center mb-6">
           Create Account
         </h1>
+
+        {/* ERROR DISPLAY */}
+        {error && (
+          <div className="bg-red-100 text-red-600 p-3 rounded mb-4">
+            {error}
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-4">
 
@@ -163,12 +166,8 @@ export default function Register() {
             onChange={handleChange}
             className="border p-3 rounded-lg"
           >
-            <option value="jobseeker">
-              Job Seeker
-            </option>
-            <option value="employer">
-              Employer
-            </option>
+            <option value="jobseeker">Job Seeker</option>
+            <option value="employer">Employer</option>
           </select>
 
         </div>
@@ -196,21 +195,18 @@ export default function Register() {
           disabled={loading}
           className="bg-blue-600 hover:bg-blue-700 text-white w-full py-3 rounded-lg mt-6"
         >
-          {loading
-            ? "Registering..."
-            : "Register"}
+          {loading ? "Registering..." : "Register"}
         </button>
 
         <p className="text-center mt-5">
           Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-blue-600 font-medium"
-          >
+          <Link to="/login" className="text-blue-600 font-medium">
             Login
           </Link>
         </p>
+
       </form>
+
     </div>
   );
 }

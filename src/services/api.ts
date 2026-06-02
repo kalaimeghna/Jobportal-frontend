@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://jobport-backend-eyz6.onrender.com/api",
+  baseURL: "http://localhost:5000/api",
   withCredentials: true,
 });
 
@@ -10,31 +10,37 @@ API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
 
+    // IMPORTANT: do NOT overwrite headers
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // safer defaults for all requests
     config.headers.Accept = "application/json";
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // ================= RESPONSE INTERCEPTOR =================
+let isLoggingOut = false;
+
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 🔥 AUTO LOGOUT ON 401 (VERY IMPORTANT)
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+
+    if (status === 401 && !isLoggingOut) {
+      isLoggingOut = true;
+
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 
-      // optional redirect
-      window.location.href = "/login";
+      delete API.defaults.headers.common.Authorization;
+
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
     }
 
     return Promise.reject(error);

@@ -14,9 +14,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -32,41 +30,31 @@ const Login = () => {
 
       const res = await API.post("/auth/login", formData);
 
-      console.log("LOGIN RESPONSE:", res.data);
-
-      // ❌ VALIDATION FIX
       if (!res.data?.token || !res.data?.user) {
         setError("Invalid login response from server");
+        setLoading(false);
         return;
       }
 
-      // SAVE TOKEN
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      // SAVE USER
-      localStorage.setItem(
-        "user",
-        JSON.stringify(res.data.user)
-      );
+      const role = res.data.user.role;
 
       alert("Login Successful");
 
-      // OPTIONAL ROLE DEBUG
-      console.log("USER ROLE:", res.data.user.role);
-
-      navigate("/");
+      if (role === "employer") {
+        navigate("/employer/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
 
     } catch (err: unknown) {
-      console.error(err);
+      const errorMessage = axios.isAxiosError(err)
+        ? err.response?.data?.message
+        : "Something went wrong";
 
-      if (axios.isAxiosError(err)) {
-        setError(
-          err.response?.data?.message ||
-            "Login failed"
-        );
-      } else {
-        setError("Something went wrong");
-      }
+      setError(errorMessage || "Login failed");
 
     } finally {
       setLoading(false);
@@ -75,7 +63,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
 
         <h2 className="text-3xl font-bold text-center mb-6">
@@ -89,13 +76,8 @@ const Login = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-
           <div className="mb-4">
-
-            <label className="block mb-2 font-medium">
-              Email
-            </label>
-
+            <label className="block mb-2 font-medium">Email</label>
             <input
               type="email"
               name="email"
@@ -104,15 +86,10 @@ const Login = () => {
               required
               className="w-full border rounded px-4 py-2"
             />
-
           </div>
 
           <div className="mb-6">
-
-            <label className="block mb-2 font-medium">
-              Password
-            </label>
-
+            <label className="block mb-2 font-medium">Password</label>
             <input
               type="password"
               name="password"
@@ -121,7 +98,6 @@ const Login = () => {
               required
               className="w-full border rounded px-4 py-2"
             />
-
           </div>
 
           <button
@@ -131,7 +107,6 @@ const Login = () => {
           >
             {loading ? "Logging in..." : "Login"}
           </button>
-
         </form>
 
         <p className="text-center mt-4">
@@ -142,7 +117,6 @@ const Login = () => {
         </p>
 
       </div>
-
     </div>
   );
 };

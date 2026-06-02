@@ -27,22 +27,27 @@ export default function Dashboard() {
 
         const user = JSON.parse(localStorage.getItem("user") || "null");
 
+        // ROLE CHECK
         if (!user || user.role !== "employer") {
           setError("Only employers can access dashboard");
+          setLoading(false);
           return;
         }
 
         const res = await API.get("/jobs?mine=true");
 
-        console.log("Dashboard API:", res.data);
+        const data = res.data.jobs || res.data;
 
-        setJobs(res.data.jobs || []);
+        setJobs(Array.isArray(data) ? data : []);
 
       } catch (error) {
         console.log("Dashboard Error:", error);
 
         if (axios.isAxiosError(error)) {
-          setError(error.response?.data?.message || "Failed to load dashboard");
+          setError(
+            error.response?.data?.message ||
+            "Failed to load dashboard"
+          );
         } else {
           setError("Something went wrong");
         }
@@ -54,7 +59,7 @@ export default function Dashboard() {
     fetchJobs();
   }, []);
 
-  // ================= DELETE JOB (FIXED STATE SAFETY) =================
+  // ================= DELETE JOB =================
   const handleDelete = async (id: string) => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this job?"
@@ -76,19 +81,31 @@ export default function Dashboard() {
 
   // ================= LOADING =================
   if (loading) {
-    return <div className="text-center mt-10 text-2xl">Loading dashboard...</div>;
+    return (
+      <div className="text-center mt-10 text-2xl">
+        Loading dashboard...
+      </div>
+    );
   }
 
   // ================= ERROR =================
   if (error) {
-    return <div className="text-center mt-10 text-red-600 text-xl">{error}</div>;
+    return (
+      <div className="text-center mt-10 text-red-600 text-xl">
+        {error}
+      </div>
+    );
   }
 
   return (
     <div className="max-w-7xl mx-auto p-8">
 
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">Employer Dashboard</h1>
+
+        <h1 className="text-4xl font-bold">
+          Employer Dashboard
+        </h1>
 
         <button
           onClick={() => navigate("/create-job")}
@@ -96,31 +113,47 @@ export default function Dashboard() {
         >
           + Create Job
         </button>
+
       </div>
 
+      {/* STATS */}
       <div className="mb-8">
         <div className="bg-white shadow-md rounded-xl p-6">
-          <h2 className="text-2xl font-semibold">Total Jobs Posted</h2>
+
+          <h2 className="text-2xl font-semibold">
+            Total Jobs Posted
+          </h2>
 
           <p className="text-4xl font-bold text-blue-600 mt-2">
             {jobs.length}
           </p>
+
         </div>
       </div>
 
+      {/* EMPTY STATE */}
       {jobs.length === 0 ? (
         <div className="bg-white shadow rounded-xl p-6">
-          <p className="text-gray-500">No jobs posted yet.</p>
+          <p className="text-gray-500">
+            No jobs posted yet.
+          </p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
           {jobs.map((job) => (
-            <div key={job._id} className="bg-white shadow-lg rounded-xl p-6 border">
+            <div
+              key={job._id}
+              className="bg-white shadow-lg rounded-xl p-6 border"
+            >
 
-              <h2 className="text-2xl font-bold mb-3">{job.title}</h2>
+              <h2 className="text-2xl font-bold mb-3">
+                {job.title}
+              </h2>
 
-              <p className="text-gray-600 mb-2">📍 {job.location}</p>
+              <p className="text-gray-600 mb-2">
+                📍 {job.location}
+              </p>
 
               <p className="text-green-600 font-semibold mb-3">
                 💰 ₹{job.salary}
@@ -128,7 +161,8 @@ export default function Dashboard() {
 
               {job.createdAt && (
                 <p className="text-sm text-gray-500 mb-4">
-                  Posted on {new Date(job.createdAt).toLocaleDateString()}
+                  Posted on{" "}
+                  {new Date(job.createdAt).toLocaleDateString()}
                 </p>
               )}
 
@@ -149,7 +183,9 @@ export default function Dashboard() {
                 </button>
 
                 <button
-                  onClick={() => navigate(`/job-applicants/${job._id}`)}
+                  onClick={() =>
+                    navigate(`/job-applicants/${job._id}`)
+                  }
                   className="text-purple-600 hover:underline"
                 >
                   Applicants

@@ -28,10 +28,6 @@ export default function Profile() {
 
   const [file, setFile] = useState<File | null>(null);
 
-  // FIXED BASE URL (important for Render + uploads)
-  const BASE_URL =
-    (import.meta.env.VITE_API_URL || "http://localhost:5000").replace("/api", "");
-
   // ================= FETCH PROFILE =================
   useEffect(() => {
     const fetchProfile = async () => {
@@ -69,25 +65,20 @@ export default function Profile() {
       formData.append("phone", form.phone);
       formData.append("experience", form.experience);
       formData.append("education", form.education);
-
-      // backend expects comma string
       formData.append("skills", form.skills);
 
       if (file) {
         formData.append("profilePicture", file);
       }
 
-      const res = await API.put("/users/profile", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await API.put("/users/profile", formData);
 
       setUser(res.data.user);
 
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       alert("Profile updated successfully");
+
     } catch (err) {
       console.log("Update error:", err);
       alert("Update failed");
@@ -100,6 +91,12 @@ export default function Profile() {
   if (loading) return <div className="p-6">Loading...</div>;
   if (!user) return <div className="p-6">User not found</div>;
 
+  // ================= IMAGE FIX =================
+  const imageSrc =
+    user.profilePicture ||
+    user.profilePic ||
+    "https://ui-avatars.com/api/?name=User";
+
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow rounded-lg">
 
@@ -107,11 +104,7 @@ export default function Profile() {
 
       {/* PROFILE IMAGE */}
       <img
-        src={
-          user.profilePicture || user.profilePic
-            ? `${BASE_URL}${user.profilePicture || user.profilePic}`
-            : "https://ui-avatars.com/api/?name=User"
-        }
+        src={imageSrc}
         className="w-24 h-24 rounded-full mb-4"
       />
 
@@ -123,7 +116,7 @@ export default function Profile() {
         className="mb-3"
       />
 
-      {/* NAME */}
+      {/* INPUTS */}
       <input
         value={form.name}
         onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -131,7 +124,6 @@ export default function Profile() {
         className="border p-2 w-full my-2"
       />
 
-      {/* PHONE */}
       <input
         value={form.phone}
         onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -139,7 +131,6 @@ export default function Profile() {
         className="border p-2 w-full my-2"
       />
 
-      {/* SKILLS */}
       <input
         value={form.skills}
         onChange={(e) => setForm({ ...form, skills: e.target.value })}
@@ -147,7 +138,6 @@ export default function Profile() {
         className="border p-2 w-full my-2"
       />
 
-      {/* EXPERIENCE */}
       <input
         value={form.experience}
         onChange={(e) => setForm({ ...form, experience: e.target.value })}
@@ -155,7 +145,6 @@ export default function Profile() {
         className="border p-2 w-full my-2"
       />
 
-      {/* EDUCATION */}
       <input
         value={form.education}
         onChange={(e) => setForm({ ...form, education: e.target.value })}
@@ -167,9 +156,7 @@ export default function Profile() {
       <button
         onClick={handleUpdate}
         disabled={updating}
-        className={`bg-blue-600 text-white px-4 py-2 w-full ${
-          updating ? "opacity-50 cursor-not-allowed" : ""
-        }`}
+        className="bg-blue-600 text-white px-4 py-2 w-full"
       >
         {updating ? "Updating..." : "Update Profile"}
       </button>
