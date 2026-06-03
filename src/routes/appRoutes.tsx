@@ -1,35 +1,35 @@
 import { Routes, Route } from "react-router-dom";
 
 // pages
-import Home from "../Pages/Home";
-import Login from "../Pages/Login";
-import Register from "../Pages/Register";
+import Home from "../pages/Home";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
 
-import Jobs from "../Pages/Jobs";
-import JobDetails from "../Pages/JobDetails";
-import EditJob from "../Pages/EditJob";
-import CreateJob from "../Pages/CreateJob";
+import Jobs from "../pages/Jobs";
+import JobDetails from "../pages/JobDetails";
+import EditJob from "../pages/EditJob";
+import CreateJob from "../pages/CreateJob";
 
-import Dashboard from "../Pages/Dashboard";
-import Profile from "../Pages/Profile";
+import Dashboard from "../pages/Dashboard";
+import Profile from "../pages/Profile";
 
-import Applications from "../Pages/Applications";
-import JobApplicants from "../Pages/JobApplicants";
-import EmployerApplications from "../Pages/EmployerApplications";
+import Applications from "../pages/Applications";
+import JobApplicants from "../pages/JobApplicants";
+import EmployerApplications from "../pages/EmployerApplications";
 
-import ForgotPassword from "../Pages/ForgotPassword";
-import ResetPassword from "../Pages/ResetPassword";
-import ChangePassword from "../Pages/ChangePassword";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
+import ChangePassword from "../pages/ChangePassword";
 
-import RecommendedJobs from "../Pages/RecommendedJob";
-import ResumeUpload from "../Pages/ResumeUpload";
+import RecommendedJobs from "../pages/RecommendedJob";
+import ResumeUpload from "../pages/ResumeUpload";
 
-import CreateCompany from "../Pages/CreateCompany";
-import Companies from "../Pages/Companies";
-import CompanyDetails from "../Pages/CompanyDetails";
+import CreateCompany from "../pages/CreateCompany";
+import Companies from "../pages/Companies";
+import CompanyDetails from "../pages/CompanyDetails";
 
-import EmployerDashboard from "../Pages/EmployerDashboard";
-import ATSDashboard from "../Pages/ATSDashboard";
+import EmployerDashboard from "../pages/EmployerDashboard";
+import ATSDashboard from "../pages/ATSDashboard";
 
 import ProtectedRoute from "../components/ProtectedRoute";
 
