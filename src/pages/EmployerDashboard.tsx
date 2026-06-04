@@ -14,7 +14,7 @@ type Job = {
 export default function EmployerDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState("");
 
   // ================= FETCH MY JOBS =================
   useEffect(() => {
@@ -23,13 +23,16 @@ export default function EmployerDashboard() {
         setLoading(true);
         setError("");
 
-        const { data } = await API.get("/jobs/my");
+        const token = localStorage.getItem("token");
 
-        console.log("API RESPONSE:", data);
+        const { data } = await API.get("/jobs/my", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         setJobs(data?.jobs || []);
       } catch (err: unknown) {
-        // ✅ SAFE AXIOS ERROR HANDLING
         if (axios.isAxiosError(err)) {
           console.error("STATUS:", err.response?.status);
           console.error("ERROR:", err.response?.data);
@@ -39,7 +42,6 @@ export default function EmployerDashboard() {
               "Failed to load employer jobs"
           );
         } else {
-          console.error("Unexpected error:", err);
           setError("Something went wrong");
         }
 
@@ -65,7 +67,9 @@ export default function EmployerDashboard() {
   if (error) {
     return (
       <div className="p-10">
-        <p className="text-red-600 text-lg mb-4">{error}</p>
+        <p className="text-red-600 text-lg mb-4">
+          {error}
+        </p>
 
         <button
           onClick={() => window.location.reload()}
@@ -80,33 +84,30 @@ export default function EmployerDashboard() {
   // ================= UI =================
   return (
     <div className="max-w-6xl mx-auto p-8">
-
       <h1 className="text-4xl font-bold mb-8">
         Employer Dashboard
       </h1>
 
-      {/* NO JOBS */}
       {jobs.length === 0 ? (
         <div className="text-gray-500">
-          <p className="mb-4">No jobs posted yet</p>
+          <p className="mb-4">
+            No jobs posted yet
+          </p>
 
           <Link
-            to="/post-job"
+            to="/create-job"
             className="bg-green-600 text-white px-4 py-2 rounded"
           >
-            Post a Job
+            Create Job
           </Link>
         </div>
       ) : (
-        /* JOB LIST */
         <div className="grid md:grid-cols-2 gap-6">
-
           {jobs.map((job) => (
             <div
               key={job._id}
               className="bg-white border shadow rounded-xl p-6"
             >
-
               <h2 className="text-2xl font-bold mb-2">
                 {job.title}
               </h2>
@@ -119,9 +120,8 @@ export default function EmployerDashboard() {
                 💰 {job.salary}
               </p>
 
-              {/* ACTION BUTTONS */}
-              <div className="flex gap-3">
-
+              <div className="flex gap-3 flex-wrap">
+                {/* VIEW JOB */}
                 <Link
                   to={`/jobs/${job._id}`}
                   className="border px-4 py-2 rounded"
@@ -129,18 +129,24 @@ export default function EmployerDashboard() {
                   View Job
                 </Link>
 
+                {/* EDIT JOB */}
                 <Link
-                  to={`/jobs/${job._id}/applicants`}
+                  to={`/edit-job/${job._id}`}
+                  className="bg-yellow-500 text-white px-4 py-2 rounded"
+                >
+                  Edit Job
+                </Link>
+
+                {/* VIEW APPLICANTS */}
+                <Link
+                  to={`/job-applicants/${job._id}`}
                   className="bg-blue-600 text-white px-4 py-2 rounded"
                 >
                   View Applicants
                 </Link>
-
               </div>
-
             </div>
           ))}
-
         </div>
       )}
     </div>
