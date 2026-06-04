@@ -17,14 +17,14 @@ import Applications from "../pages/Applications";
 import JobApplicants from "../pages/JobApplicants";
 import EmployerApplications from "../pages/EmployerApplications";
 
-import ForgotPassword from "../pages/ForgotPassword";
-import ResetPassword from "../pages/ResetPassword";
-import ChangePassword from "../pages/ChangePassword";
+import ForgotPassword from "../pages/forgotPassword";
+import ResetPassword from "../pages/resetPassword";
+import ChangePassword from "../pages/changePassword";
 
-import RecommendedJobs from "../pages/RecommendedJob";
-import ResumeUpload from "../pages/ResumeUpload";
+import RecommendedJobs from "../pages/recommendedJob";
+import ResumeUpload from "../pages/resumeUpload";
 
-import CreateCompany from "../pages/CreateCompany";
+import CreateCompany from "../pages/createCompany";
 import Companies from "../pages/Companies";
 import CompanyDetails from "../pages/CompanyDetails";
 
