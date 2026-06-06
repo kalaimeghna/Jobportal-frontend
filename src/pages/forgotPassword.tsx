@@ -32,7 +32,7 @@ export default function ForgotPassword() {
         const res =
           await fetch(
 
-            `${import.meta.env.VITE_API_URL}/auth/forgot-password`,
+            "http://localhost:5000/api/auth/forgot-password",
 
             {
               method: "POST",

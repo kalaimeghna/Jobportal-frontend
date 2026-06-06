@@ -42,7 +42,7 @@ export default function ChangePassword() {
         const res =
           await fetch(
 
-            `${import.meta.env.VITE_API_URL}/auth/change-password`,
+            "http://localhost:5000/api/auth/change-password",
 
             {
               method: "PUT",
