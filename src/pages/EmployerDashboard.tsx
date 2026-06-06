@@ -13,7 +13,7 @@ type Job = {
 
 export default function EmployerDashboard() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   // ================= FETCH MY JOBS =================
@@ -23,13 +23,8 @@ export default function EmployerDashboard() {
         setLoading(true);
         setError("");
 
-        const token = localStorage.getItem("token");
-
-        const { data } = await API.get("/jobs/my", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // ❌ NO TOKEN NEEDED (API interceptor handles it)
+        const { data } = await API.get("/jobs/my");
 
         setJobs(data?.jobs || []);
       } catch (err: unknown) {
@@ -57,7 +52,7 @@ export default function EmployerDashboard() {
   // ================= LOADING =================
   if (loading) {
     return (
-      <div className="p-10 text-xl font-semibold">
+      <div className="p-10 text-center text-xl font-semibold">
         Loading Employer Dashboard...
       </div>
     );
@@ -66,7 +61,7 @@ export default function EmployerDashboard() {
   // ================= ERROR =================
   if (error) {
     return (
-      <div className="p-10">
+      <div className="p-10 text-center">
         <p className="text-red-600 text-lg mb-4">
           {error}
         </p>
@@ -81,27 +76,28 @@ export default function EmployerDashboard() {
     );
   }
 
-  // ================= UI =================
   return (
     <div className="max-w-6xl mx-auto p-8">
       <h1 className="text-4xl font-bold mb-8">
         Employer Dashboard
       </h1>
 
+      {/* ================= EMPTY STATE ================= */}
       {jobs.length === 0 ? (
-        <div className="text-gray-500">
-          <p className="mb-4">
-            No jobs posted yet
+        <div className="text-center text-gray-500 py-10">
+          <p className="text-lg mb-4">
+            No jobs posted yet 🚀
           </p>
 
           <Link
             to="/create-job"
-            className="bg-green-600 text-white px-4 py-2 rounded"
+            className="bg-green-600 text-white px-6 py-2 rounded"
           >
-            Create Job
+            Create Your First Job
           </Link>
         </div>
       ) : (
+        // ================= JOB LIST =================
         <div className="grid md:grid-cols-2 gap-6">
           {jobs.map((job) => (
             <div
@@ -120,8 +116,8 @@ export default function EmployerDashboard() {
                 💰 {job.salary}
               </p>
 
+              {/* ================= ACTIONS ================= */}
               <div className="flex gap-3 flex-wrap">
-                {/* VIEW JOB */}
                 <Link
                   to={`/jobs/${job._id}`}
                   className="border px-4 py-2 rounded"
@@ -129,7 +125,6 @@ export default function EmployerDashboard() {
                   View Job
                 </Link>
 
-                {/* EDIT JOB */}
                 <Link
                   to={`/edit-job/${job._id}`}
                   className="bg-yellow-500 text-white px-4 py-2 rounded"
@@ -137,7 +132,6 @@ export default function EmployerDashboard() {
                   Edit Job
                 </Link>
 
-                {/* VIEW APPLICANTS */}
                 <Link
                   to={`/job-applicants/${job._id}`}
                   className="bg-blue-600 text-white px-4 py-2 rounded"

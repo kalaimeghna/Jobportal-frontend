@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://jobport-backend-eyz6.onrender.com/api",
+  baseURL: "http://localhost:5000/api",
   withCredentials: true,
 });
 
@@ -10,11 +10,12 @@ API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
 
-    // IMPORTANT: do NOT overwrite headers
     if (token) {
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    config.headers = config.headers || {};
     config.headers.Accept = "application/json";
 
     return config;
