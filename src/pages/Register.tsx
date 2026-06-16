@@ -40,27 +40,31 @@ export default function Register() {
       setLoading(true);
       setError("");
 
-      // ================= PAYLOAD FIX =================
+      // Correct payload
       const payload = {
         ...formData,
-        role: formData.role === "jobseeker" ? "user" : "employer",
+        role: formData.role,
         skills: formData.skills
-          ? formData.skills.split(",").map((s) => s.trim())
+          ? formData.skills
+              .split(",")
+              .map((skill) => skill.trim())
           : [],
       };
 
-      const { data } = await API.post("/auth/register", payload);
+      const { data } = await API.post(
+        "/auth/register",
+        payload
+      );
 
-      if (!data.success) {
+      if (data.success) {
+        alert("Registration successful. Please login.");
+        navigate("/login");
+      } else {
         setError(data.message || "Registration failed");
-        return;
       }
 
-      alert("Registration successful. Please login.");
-      navigate("/login");
-
     } catch (error) {
-      console.error(error);
+      console.log("REGISTER ERROR:", error);
 
       const errorMessage = axios.isAxiosError(error)
         ? error.response?.data?.message
@@ -85,7 +89,6 @@ export default function Register() {
           Create Account
         </h1>
 
-        {/* ERROR DISPLAY */}
         {error && (
           <div className="bg-red-100 text-red-600 p-3 rounded mb-4">
             {error}
@@ -122,6 +125,7 @@ export default function Register() {
             onChange={handleChange}
             className="border p-3 rounded-lg"
             required
+            minLength={6}
           />
 
           <input
@@ -166,8 +170,13 @@ export default function Register() {
             onChange={handleChange}
             className="border p-3 rounded-lg"
           >
-            <option value="jobseeker">Job Seeker</option>
-            <option value="employer">Employer</option>
+            <option value="jobseeker">
+              Job Seeker
+            </option>
+
+            <option value="employer">
+              Employer
+            </option>
           </select>
 
         </div>
@@ -200,7 +209,10 @@ export default function Register() {
 
         <p className="text-center mt-5">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 font-medium">
+          <Link
+            to="/login"
+            className="text-blue-600 font-medium"
+          >
             Login
           </Link>
         </p>
