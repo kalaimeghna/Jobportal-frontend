@@ -42,7 +42,7 @@ export default function ChangePassword() {
         const res =
           await fetch(
 
-            "http://localhost:5000/api/auth/change-password",
+            "https://jobport-backend-eyz6.onrender.com/api/auth/change-password",
 
             {
               method: "PUT",
